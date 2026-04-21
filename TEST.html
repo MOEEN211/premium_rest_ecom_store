@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+</head>
+<body>
+
+<button onclick="sendMail()">Send Email</button>
+
+<script>
+emailjs.init("HTVX1ebXlWIIqVAhw");
+
+function sendMail() {
+    emailjs.send("service_rg6nwuf", "template_qxwqa9o", {
+        to_email: "moeenijaz211@gmail.com",
+        ORDER_ID: "12345",
+        DATE: "25 March 2026",
+        CUSTOMER_NAME: "Moeen",
+        CUSTOMER_EMAIL: "customer@example.com",
+        CUSTOMER_PHONE: "03000000000",
+        CUSTOMER_ADDRESS: "Pakistan",
+        ORDER_ITEMS_TABLE_ROWS: "Luxury Bed x1",
+        TOTAL_AMOUNT: "500"
+    })
+    .then(function(response) {
+        alert("Success ✅");
+        console.log(response);
+    })
+    .catch(function(error) {
+        alert(JSON.stringify(error));
+        console.log(error);
+    });
+}
+</script>
+
+</body>
+</html>

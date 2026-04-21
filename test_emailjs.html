@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>EmailJS Test</title>
+</head>
+<body>
+    <h1>EmailJS Test Page</h1>
+    
+    <button onclick="testEmailJS()">Send Test Email</button>
+    
+    <div id="result"></div>
+    
+    <script>
+        // Test function
+        function testEmailJS() {
+            console.log('🧪 Starting EmailJS test...');
+            
+            const templateParams = {
+                to_email: 'moeenijaz211@gmail.com',
+                orderId: 'TEST-' + Date.now(),
+                orderDate: new Date().toLocaleDateString('en-GB'),
+                orderTime: new Date().toLocaleTimeString('en-GB'),
+                customerName: 'Test Customer',
+                customerEmail: 'test@example.com',
+                customerPhone: '1234567890',
+                shippingAddress: 'Test Address',
+                itemsList: '1. Test Product\nQty: 1 x £100 = £100',
+                itemCount: '1',
+                subtotal: '100.00',
+                shipping: '10.00',
+                total: '110.00',
+                hasAssembly: 'No',
+                assembly: '0.00',
+                timestamp: new Date().toLocaleString('en-GB')
+            };
+            
+            console.log('🧪 Template params:', templateParams);
+            
+            if (window.emailjs) {
+                window.emailjs.send('service_rg6nwuf', 'template_qxwqa9o', templateParams)
+                    .then(function(response) {
+                        console.log('✅ EmailJS Success:', response);
+                        document.getElementById('result').innerHTML = '<p style="color: green;">✅ Email sent successfully! Check moeenijaz211@gmail.com</p>';
+                    })
+                    .catch(function(error) {
+                        console.error('❌ EmailJS Error:', error);
+                        document.getElementById('result').innerHTML = '<p style="color: red;">❌ Email failed: ' + error.text + '</p>';
+                    });
+            } else {
+                console.error('❌ EmailJS not loaded');
+                document.getElementById('result').innerHTML = '<p style="color: red;">❌ EmailJS not loaded</p>';
+            }
+        }
+        
+        // Check if EmailJS is loaded
+        window.onload = function() {
+            if (typeof window.emailjs !== 'undefined') {
+                console.log('✅ EmailJS is loaded and ready');
+                document.getElementById('result').innerHTML = '<p style="color: blue;">✅ EmailJS is loaded - Click button to test</p>';
+            } else {
+                console.error('❌ EmailJS not loaded');
+                document.getElementById('result').innerHTML = '<p style="color: red;">❌ EmailJS not loaded - Check CDN</p>';
+            }
+        };
+    </script>
+</body>
+</html>

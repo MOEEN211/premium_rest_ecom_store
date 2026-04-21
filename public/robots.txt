@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://elitebed.co.uk/sitemap.xml
+
+# Block common non-content paths
+Disallow: /admin/
+Disallow: /api/
+Disallow: /*.json$
+Disallow: /*.js$
+Disallow: /*.css$
+
+# Allow search engines to crawl the site
+Crawl-delay: 1
