@@ -1,10 +1,12 @@
 import { useParams, Link } from 'react-router-dom';
-import { useContext, useState } from 'react';
+import { useContext, useState, useEffect } from 'react';
 import { Star } from 'lucide-react';
 import { CartContext } from '../context/CartContext';
 import { useSupabaseBeds } from '../hooks/useSupabaseBeds';
+import { supabase } from '../lib/supabaseClient';
 import Features from '../components/Features';
 import Breadcrumbs from '../components/Breadcrumbs';
+import CategoryLinks from '../components/CategoryLinks';
 
 const MATTRESS_OPTIONS = {
   '3FT': [
@@ -39,6 +41,11 @@ const MATTRESS_OPTIONS = {
   ],
 };
 
+const BASE_OPTIONS = [
+  { label: 'With Wooden Slats Base', value: 'With Wooden Slats Base', price: 0 },
+  { label: 'Solid Wooden Board Base', value: 'Solid Wooden Board Base', price: 35 },
+];
+
 function normalizeSizeKey(size) {
   if (!size) return null;
   const s = size.toUpperCase().replace(/\s/g, '');
@@ -64,6 +71,10 @@ export default function ProductDetails() {
   const [thickness, setThickness] = useState('8"');
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [assembly, setAssembly] = useState('No Bed Assembling');
+  const [headboard, setHeadboard] = useState('');
+  const [base, setBase] = useState('');
+  const [localOptions, setLocalOptions] = useState([]);
+  const [optionsLoading, setOptionsLoading] = useState(true);
 
   // Sofa-specific state
   const [sofaColor, setSofaColor] = useState('');
@@ -71,35 +82,99 @@ export default function ProductDetails() {
   const [sofaSize, setSofaSize] = useState('');
   const [stool, setStool] = useState('No');
 
-  if (loading) return <div className="bg-white py-32 text-center min-h-[60vh] text-xl text-gray-500">Loading...</div>;
+  // Wardrobe-specific state
+  const [wardrobeSize, setWardrobeSize] = useState('');
+  const [wardrobeColor, setWardrobeColor] = useState('');
 
-  let product = beds.find(p => p.id === id);
+  const product = beds.find(p => p.id === id);
+
+  const isConfigurable = product?.isSupabase;
+  const isMattress = product?.category === 'mattress';
+  const isSofa = product?.category === 'sofa';
+  const isWardrobe = product?.category === 'wardrobe';
+
+  const isExcludedFromBase = 
+    product?.name?.toLowerCase().includes('divan') || 
+    product?.name?.toLowerCase().includes('ottoman') || 
+    product?.name?.toLowerCase().includes('storage');
+  const showBaseOption = isConfigurable && !isMattress && !isSofa && !isWardrobe && !isExcludedFromBase;
+
+  const sizeOptions = isConfigurable
+    ? localOptions.filter(o => o.category === 'PRICE_FRAME').sort((a, b) => parseFloat(a.price_modifier) - parseFloat(b.price_modifier))
+    : [];
+
+  const sofaSizeOptions = isSofa
+    ? localOptions.filter(o => o.category === 'SOFA_SIZE').sort((a, b) => parseFloat(a.price_modifier) - parseFloat(b.price_modifier))
+    : [];
+
+  const wardrobeSizeOptions = isWardrobe
+    ? localOptions.filter(o => o.category === 'WARDROBE_SIZE').sort((a, b) => parseFloat(a.price_modifier) - parseFloat(b.price_modifier))
+    : [];
+
+  const baseOptions = showBaseOption ? BASE_OPTIONS : [];
+
+  // Fetch options for this specific product if it has a custom/specific price type
+  useEffect(() => {
+    async function fetchProductOptions() {
+      if (!product || !product.base_price_type) {
+        setOptionsLoading(false);
+        return;
+      }
+      setOptionsLoading(true);
+      const { data, error } = await supabase
+        .from('bed_options')
+        .select('*')
+        .eq('base_price_type', product.base_price_type);
+      
+      if (!error && data) {
+        setLocalOptions(data);
+      }
+      setOptionsLoading(false);
+    }
+    if (product) fetchProductOptions();
+  }, [product?.base_price_type, id]);
+
+  // Auto-select lowest price size when options load
+  useEffect(() => {
+    if (sizeOptions.length > 0 && !size) {
+      setSize(sizeOptions[0].value);
+    }
+  }, [sizeOptions, size]);
+
+  useEffect(() => {
+    if (sofaSizeOptions.length > 0 && !sofaSize) {
+      setSofaSize(sofaSizeOptions[0].value);
+    }
+  }, [sofaSizeOptions, sofaSize]);
+
+  useEffect(() => {
+    if (wardrobeSizeOptions.length > 0 && !wardrobeSize) {
+      setWardrobeSize(wardrobeSizeOptions[0].value);
+    }
+  }, [wardrobeSizeOptions, wardrobeSize]);
+
+  // Auto-select defaults for required fields (mattress, storage and base only)
+  useEffect(() => {
+    if (isConfigurable && !isSofa && !isWardrobe && !isMattress) {
+      if (!mattress) setMattress('No Mattress');
+      if (!storage) setStorage('No Storage');
+      if (showBaseOption && !base) setBase('With Wooden Slats Base');
+    }
+  }, [isConfigurable, isSofa, isWardrobe, isMattress, mattress, storage, showBaseOption, base]);
+
+  if (loading || (product && optionsLoading)) return <div className="bg-white py-32 text-center min-h-[60vh] text-xl text-gray-500">Loading...</div>;
 
   if (!product) {
     return (
-      <div className="bg-white py-32 text-center min-h-[60vh]">
-        <h2 className="text-2xl font-serif text-slate-900 mb-4">Product Not Found</h2>
-        <Link to="/shop" className="text-teal-600 hover:underline">Return to Shop</Link>
+      <div className="bg-[#f8f8f8] py-32 text-center min-h-[60vh]">
+        <h2 className="text-3xl font-black text-slate-900 mb-4 tracking-tighter">Product Not Found</h2>
+        <Link to="/shop" className="text-[#1a193f] font-bold hover:underline">Return to Shop</Link>
       </div>
     );
   }
 
-  const isConfigurable = product.isSupabase;
-  const isMattress = product.category === 'mattress';
-  const isSofa = product.category === 'sofa';
-  const storageValue = (!isMattress && !isSofa && product.storage_type === 'No Need') ? 'No Storage' : storage;
-
-  const baseType = isConfigurable
-    ? (product.base_price_type || (options && options.length > 0 ? options[0].base_price_type : 'DEFAULT'))
-    : 'DEFAULT';
-
-  const sizeOptions = isConfigurable
-    ? options.filter(o => o.category === 'PRICE_FRAME' && o.base_price_type === baseType)
-    : [];
-
-  const sofaSizeOptions = isSofa
-    ? options.filter(o => o.category === 'SOFA_SIZE' && o.base_price_type === baseType)
-    : [];
+  const storageValue = (!isMattress && !isSofa && !isWardrobe && product.storage_type === 'No Need') ? 'No Storage' : storage;
+  const baseType = product.base_price_type || 'DEFAULT';
 
   const sizeKey = normalizeSizeKey(size);
   const availableMattressOptions = sizeKey ? MATTRESS_OPTIONS[sizeKey] || [] : [];
@@ -111,8 +186,11 @@ export default function ProductDetails() {
     const sofaBasePrice = sofaSizeOption ? parseFloat(sofaSizeOption.price_modifier) : 0;
     const stoolAdd = stool === 'Yes' ? 100 : 0;
     finalPrice = sofaBasePrice + stoolAdd;
+  } else if (isWardrobe) {
+    const wardrobeSizeOption = wardrobeSizeOptions.find(o => o.value === wardrobeSize);
+    finalPrice = wardrobeSizeOption ? parseFloat(wardrobeSizeOption.price_modifier) : 299;
   } else if (isConfigurable) {
-    const sizeOption = options.find(o => o.category === 'PRICE_FRAME' && o.value === size && o.base_price_type === baseType);
+    const sizeOption = localOptions.find(o => o.category === 'PRICE_FRAME' && o.value === size);
     let basePrice = sizeOption ? parseFloat(sizeOption.price_modifier) : 0;
 
     if (isMattress) {
@@ -137,8 +215,17 @@ export default function ProductDetails() {
 
       let assemblyAdd = assembly === 'Bed Assembling' ? 50 : 0;
 
-      finalPrice = basePrice + mattressAdd + storageAdd + assemblyAdd;
-      console.log('🔍 Price Debug - Base:', basePrice, 'Mattress:', mattressAdd, 'Storage:', storageAdd, 'Assembly:', assemblyAdd, 'Final:', finalPrice);
+      let headboardAdd = 0;
+      if (headboard === '54 Inches Tall Headboard') headboardAdd = 50;
+
+      let baseAdd = 0;
+      if (showBaseOption && base) {
+        const baseObj = BASE_OPTIONS.find(o => o.value === base);
+        baseAdd = baseObj ? baseObj.price : 0;
+      }
+
+      finalPrice = basePrice + mattressAdd + storageAdd + assemblyAdd + headboardAdd + baseAdd;
+      console.log('🔍 Price Debug - Base:', basePrice, 'Mattress:', mattressAdd, 'Storage:', storageAdd, 'Assembly:', assemblyAdd, 'Headboard:', headboardAdd, 'BaseOption:', baseAdd, 'Final:', finalPrice);
     }
   }
 
@@ -157,18 +244,32 @@ export default function ProductDetails() {
         quantity: Number(quantity),
         selectedOptions: { Size: sofaSize, Color: sofaColor, Fabric: sofaFabric, Stool: stool }
       });
+    } else if (isWardrobe) {
+      if (!wardrobeSize || !wardrobeColor) {
+        alert('Please select all options (Size, Color) before buying.');
+        return;
+      }
+      const cartId = `${product.id}-${wardrobeSize}-${wardrobeColor}`;
+      addToCart({
+        ...product,
+        price: finalPrice,
+        cartId,
+        name: `${product.name} (${wardrobeSize})`,
+        quantity: Number(quantity),
+        selectedOptions: { Size: wardrobeSize, Color: wardrobeColor }
+      });
     } else if (isConfigurable) {
       if (isMattress && !size) {
         alert("Please select a size to continue.");
         return;
       }
-      if (!isMattress && (!size || !mattress || !storageValue || !fabric || !color)) {
+      if (!isMattress && (!size || !mattress || !storageValue || !fabric || !color || (showBaseOption && !base))) {
         alert("Please select all options before buying.");
         return;
       }
       const cartId = isMattress
         ? `${product.id}-${size}-${thickness}`
-        : `${product.id}-${size}-${mattress}-${storageValue}-${color}-${fabric}-${assembly}`;
+        : `${product.id}-${size}-${mattress}-${storageValue}-${color}-${fabric}-${assembly}-${headboard}-${base}`;
 
       addToCart({
         ...product,
@@ -178,7 +279,7 @@ export default function ProductDetails() {
         quantity: Number(quantity),
         selectedOptions: isMattress
           ? { Size: size, Thickness: thickness }
-          : { Size: size, Mattress: mattress, Storage: storageValue, Color: color, Fabric: fabric, Assembly: assembly }
+          : { Size: size, Mattress: mattress, Storage: storageValue, Color: color, Fabric: fabric, Assembly: assembly, Headboard: headboard, Base: base }
       });
     } else {
       addToCart({...product, quantity: Number(quantity)});
@@ -196,9 +297,9 @@ export default function ProductDetails() {
           { name: product.name, url: `/product/${product.id}` }
         ]}
       />
-      <div className="bg-white py-16">
+      <div className="bg-[#f8f8f8] py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 bg-white p-6 md:p-10 rounded-2xl shadow-sm border border-gray-100">
 
             {/* Gallery Section */}
             <div className="flex flex-col gap-4 order-1 lg:order-1">
@@ -227,11 +328,18 @@ export default function ProductDetails() {
               <div className="font-bold text-2xl text-slate-900 mb-4">
                 {(() => {
                   if (isSofa && !sofaSize) {
-                    const minP = sofaSizeOptions.length > 0 ? Math.min(...sofaSizeOptions.map(o => parseFloat(o.price_modifier) || 0)) : (product.price || 0);
+                    const prices = sofaSizeOptions.map(o => parseFloat(o.price_modifier)).filter(p => !isNaN(p) && p > 0);
+                    const minP = prices.length > 0 ? Math.min(...prices) : (product.price || 0);
                     return minP > 0 ? `From £${minP.toFixed(2)}` : 'Select options to see price';
                   }
-                  if (!isSofa && isConfigurable && !size) {
-                    const minP = sizeOptions.length > 0 ? Math.min(...sizeOptions.map(o => parseFloat(o.price_modifier) || 0)) : (product.price || 0);
+                  if (isWardrobe && !wardrobeSize) {
+                    const prices = wardrobeSizeOptions.map(o => parseFloat(o.price_modifier)).filter(p => !isNaN(p) && p > 0);
+                    const minP = prices.length > 0 ? Math.min(...prices) : (product.price || 299);
+                    return minP > 0 ? `From £${minP.toFixed(2)}` : 'Select options to see price';
+                  }
+                  if (!isSofa && !isWardrobe && isConfigurable && !size) {
+                    const prices = sizeOptions.map(o => parseFloat(o.price_modifier)).filter(p => !isNaN(p) && p > 0);
+                    const minP = prices.length > 0 ? Math.min(...prices) : (product.price || 0);
                     return minP > 0 ? `From £${minP.toFixed(2)}` : 'Select options to see price';
                   }
                   return `Price: ${finalPrice > 0 ? `£${finalPrice.toFixed(2)}` : 'Select options to see price'}`;
@@ -259,7 +367,7 @@ export default function ProductDetails() {
                         <select
                           value={sofaSize}
                           onChange={e => setSofaSize(e.target.value)}
-                          className="flex-1 p-2 border border-slate-300 rounded-md bg-white focus:outline-none focus:border-teal-500 text-gray-700 text-sm"
+                          className="flex-1 p-2 border border-slate-300 rounded-md bg-white focus:outline-none focus:border-[#1a193f] focus:ring-1 focus:ring-[#1a193f] text-gray-700 text-sm font-medium shadow-sm"
                         >
                           <option value="" disabled>Choose an Option</option>
                           {sofaSizeOptions.map(o => (
@@ -274,7 +382,7 @@ export default function ProductDetails() {
                         <select
                           value={sofaFabric}
                           onChange={e => setSofaFabric(e.target.value)}
-                          className="flex-1 p-2 border border-slate-300 rounded-md bg-white focus:outline-none focus:border-teal-500 text-gray-700 text-sm"
+                          className="flex-1 p-2 border border-slate-300 rounded-md bg-white focus:outline-none focus:border-[#1a193f] focus:ring-1 focus:ring-[#1a193f] text-gray-700 text-sm font-medium shadow-sm"
                         >
                           <option value="" disabled>Choose an Option</option>
                           <option value="Chenille">Chenille</option>
@@ -289,7 +397,7 @@ export default function ProductDetails() {
                         <select
                           value={sofaColor}
                           onChange={e => setSofaColor(e.target.value)}
-                          className="flex-1 p-2 border border-slate-300 rounded-md bg-white focus:outline-none focus:border-teal-500 text-gray-700 text-sm"
+                          className="flex-1 p-2 border border-slate-300 rounded-md bg-white focus:outline-none focus:border-[#1a193f] focus:ring-1 focus:ring-[#1a193f] text-gray-700 text-sm font-medium shadow-sm"
                         >
                           <option value="" disabled>Choose an Option</option>
                           <option value="Black">Black</option>
@@ -309,7 +417,7 @@ export default function ProductDetails() {
                         <select
                           value={stool}
                           onChange={e => setStool(e.target.value)}
-                          className="flex-1 p-2 border border-slate-300 rounded-md bg-white focus:outline-none focus:border-teal-500 text-gray-700 text-sm"
+                          className="flex-1 p-2 border border-slate-300 rounded-md bg-white focus:outline-none focus:border-[#1a193f] focus:ring-1 focus:ring-[#1a193f] text-gray-700 text-sm font-medium shadow-sm"
                         >
                           <option value="No">No Stool</option>
                           <option value="Yes">Yes, Add Stool (+£100.00)</option>
@@ -318,8 +426,45 @@ export default function ProductDetails() {
                     </>
                   )}
 
+                  {/* ── WARDROBE OPTIONS ── */}
+                  {isWardrobe && (
+                    <>
+                      {/* Wardrobe Size */}
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                        <span className="w-full sm:w-24 font-bold text-slate-900 text-sm">Size</span>
+                        <select
+                          value={wardrobeSize}
+                          onChange={e => setWardrobeSize(e.target.value)}
+                          className="flex-1 p-2 border border-slate-300 rounded-md bg-white focus:outline-none focus:border-[#1a193f] focus:ring-1 focus:ring-[#1a193f] text-gray-700 text-sm font-medium shadow-sm"
+                        >
+                          <option value="" disabled>Choose an Option</option>
+                          {wardrobeSizeOptions.map(o => (
+                            <option key={o.value} value={o.value}>{o.value}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Wardrobe Color */}
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                        <span className="w-full sm:w-24 font-bold text-slate-900 text-sm">Color</span>
+                        <select
+                          value={wardrobeColor}
+                          onChange={e => setWardrobeColor(e.target.value)}
+                          className="flex-1 p-2 border border-slate-300 rounded-md bg-white focus:outline-none focus:border-[#1a193f] focus:ring-1 focus:ring-[#1a193f] text-gray-700 text-sm font-medium shadow-sm"
+                        >
+                          <option value="" disabled>Choose an Option</option>
+                          <option value="Black">Black</option>
+                          <option value="Grey">Grey</option>
+                          <option value="White">White</option>
+                          <option value="Oak">Oak</option>
+                          <option value="Walnut">Walnut</option>
+                        </select>
+                      </div>
+                    </>
+                  )}
+
                   {/* ── BED / MATTRESS OPTIONS ── */}
-                  {!isSofa && (
+                  {!isSofa && !isWardrobe && (
                     <>
                       {/* Size */}
                       <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
@@ -327,7 +472,7 @@ export default function ProductDetails() {
                         <select
                           value={size}
                           onChange={(e) => { setSize(e.target.value); setMattress(''); }}
-                          className="flex-1 p-2 border border-slate-300 rounded-md bg-white focus:outline-none focus:border-teal-500 text-gray-700 text-sm"
+                          className="flex-1 p-2 border border-slate-300 rounded-md bg-white focus:outline-none focus:border-[#1a193f] focus:ring-1 focus:ring-[#1a193f] text-gray-700 text-sm font-medium shadow-sm"
                         >
                           <option value="" disabled>Choose an Option</option>
                           {sizeOptions.map(option => (
@@ -343,7 +488,7 @@ export default function ProductDetails() {
                           <select
                             value={thickness}
                             onChange={(e) => setThickness(e.target.value)}
-                            className="flex-1 p-2 border border-slate-300 rounded-md bg-white focus:outline-none focus:border-teal-500 text-gray-700 text-sm"
+                            className="flex-1 p-2 border border-slate-300 rounded-md bg-white focus:outline-none focus:border-[#1a193f] focus:ring-1 focus:ring-[#1a193f] text-gray-700 text-sm font-medium shadow-sm"
                           >
                             <option value='8"'>8" (Standard)</option>
                             <option value='10"'>10" (+£20.00)</option>
@@ -361,7 +506,7 @@ export default function ProductDetails() {
                             <select
                               value={fabric}
                               onChange={(e) => setFabric(e.target.value)}
-                              className="flex-1 p-2 border border-slate-300 rounded-md bg-white focus:outline-none focus:border-teal-500 text-gray-700 text-sm"
+                              className="flex-1 p-2 border border-slate-300 rounded-md bg-white focus:outline-none focus:border-[#1a193f] focus:ring-1 focus:ring-[#1a193f] text-gray-700 text-sm font-medium shadow-sm"
                             >
                               <option value="" disabled>Choose an Option</option>
                               <option value="Crushed Velvet">Crushed Velvet</option>
@@ -377,7 +522,7 @@ export default function ProductDetails() {
                             <select
                               value={mattress}
                               onChange={(e) => setMattress(e.target.value)}
-                              className="flex-1 p-2 border border-slate-300 rounded-md bg-white focus:outline-none focus:border-teal-500 text-gray-700 text-sm"
+                              className="flex-1 p-2 border border-slate-300 rounded-md bg-white focus:outline-none focus:border-[#1a193f] focus:ring-1 focus:ring-[#1a193f] text-gray-700 text-sm font-medium shadow-sm"
                             >
                               <option value="" disabled>Choose an Option</option>
                               <option value="No Mattress">No Mattress (Frame Only)</option>
@@ -393,7 +538,7 @@ export default function ProductDetails() {
                             <select
                               value={color}
                               onChange={(e) => setColor(e.target.value)}
-                              className="flex-1 p-2 border border-slate-300 rounded-md bg-white focus:outline-none focus:border-teal-500 text-gray-700 text-sm"
+                              className="flex-1 p-2 border border-slate-300 rounded-md bg-white focus:outline-none focus:border-[#1a193f] focus:ring-1 focus:ring-[#1a193f] text-gray-700 text-sm font-medium shadow-sm"
                             >
                               <option value="" disabled>Choose an Option</option>
                               <option value="Brown">Brown</option>
@@ -425,7 +570,7 @@ export default function ProductDetails() {
                               <select
                                 value={storage}
                                 onChange={(e) => setStorage(e.target.value)}
-                                className="flex-1 p-2 border border-slate-300 rounded-md bg-white focus:outline-none focus:border-teal-500 text-gray-700 text-sm"
+                                className="flex-1 p-2 border border-slate-300 rounded-md bg-white focus:outline-none focus:border-[#1a193f] focus:ring-1 focus:ring-[#1a193f] text-gray-700 text-sm font-medium shadow-sm"
                               >
                                 <option value="" disabled>Choose an Option</option>
                                 <option value="No Storage">No Storage</option>
@@ -439,6 +584,41 @@ export default function ProductDetails() {
                                 ) : (
                                   <option value="Gas Lift">Gas Lift (+£100.00)</option>
                                 )}
+                              </select>
+                            </div>
+                          )}
+
+                          {/* Headboard - only for configurable beds (not sofa, not mattress, not wardrobe) */}
+                          {isConfigurable && !isMattress && !isSofa && !isWardrobe && (
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                              <span className="w-full sm:w-24 font-bold text-slate-900 text-sm">Headboard</span>
+                              <select
+                                value={headboard || ''}
+                                onChange={(e) => setHeadboard(e.target.value)}
+                                className="flex-1 p-2 border border-slate-300 rounded-md bg-white focus:outline-none focus:border-[#1a193f] focus:ring-1 focus:ring-[#1a193f] text-gray-700 text-sm font-medium shadow-sm"
+                              >
+                                <option value="">Choose an Option</option>
+                                <option value="42 Inches Tall Headboard">42 Inches Tall Headboard</option>
+                                <option value="54 Inches Tall Headboard">54 Inches Tall Headboard (+£50.00)</option>
+                              </select>
+                            </div>
+                          )}
+
+                          {/* Base - only for configurable beds (not sofa, not mattress, not wardrobe, not divan/ottoman/storage beds) */}
+                          {showBaseOption && (
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                              <span className="w-full sm:w-24 font-bold text-slate-900 text-sm">Base</span>
+                              <select
+                                value={base || ''}
+                                onChange={(e) => setBase(e.target.value)}
+                                className="flex-1 p-2 border border-slate-300 rounded-md bg-white focus:outline-none focus:border-[#1a193f] focus:ring-1 focus:ring-[#1a193f] text-gray-700 text-sm font-medium shadow-sm"
+                              >
+                                <option value="" disabled>Choose an Option</option>
+                                {BASE_OPTIONS.map(o => (
+                                  <option key={o.value} value={o.value}>
+                                    {o.label} {o.price > 0 ? `(+£${o.price.toFixed(2)})` : ''}
+                                  </option>
+                                ))}
                               </select>
                             </div>
                           )}
@@ -462,24 +642,24 @@ export default function ProductDetails() {
                 />
               </div>
 
-              {/* Assembly - only for configurable beds (not sofa, not mattress) */}
-              {isConfigurable && !isMattress && !isSofa && (
+              {/* Assembly - only for configurable beds (not sofa, not mattress, not wardrobe) */}
+              {isConfigurable && !isMattress && !isSofa && !isWardrobe && (
                 <div className="grid grid-cols-2 gap-4 mb-8">
                   <button
                     onClick={() => setAssembly('No Bed Assembling')}
-                    className={`relative p-4 border rounded-md text-center flex items-center justify-center transition-colors ${assembly === 'No Bed Assembling' ? 'border-[#4a9d9c] ring-1 ring-[#4a9d9c]' : 'border-gray-300'}`}
+                    className={`relative p-5 border rounded-xl text-center flex items-center justify-center transition-all shadow-sm ${assembly === 'No Bed Assembling' ? 'border-[#1a193f] border-2 bg-white' : 'border-gray-200 bg-gray-50/50 hover:border-gray-300'}`}
                   >
-                    <span className="absolute top-2 left-2 text-[10px] text-gray-500">Free</span>
-                    <span className="font-semibold text-slate-800 text-sm mt-2">No Bed Assembling</span>
+                    <span className="absolute top-2 left-3 text-[11px] font-bold text-gray-500 uppercase tracking-widest">Free</span>
+                    <span className={`font-bold text-sm mt-3 ${assembly === 'No Bed Assembling' ? 'text-[#1a193f]' : 'text-slate-800'}`}>No Bed Assembling</span>
                   </button>
 
                   <button
                     onClick={() => setAssembly('Bed Assembling')}
-                    className={`relative p-4 border rounded-md text-center flex items-center justify-center transition-colors ${assembly === 'Bed Assembling' ? 'border-[#4a9d9c] ring-1 ring-[#4a9d9c]' : 'border-gray-300'}`}
+                    className={`relative p-5 border rounded-xl text-center flex flex-col items-center justify-center transition-all shadow-sm ${assembly === 'Bed Assembling' ? 'border-[#1a193f] border-2 bg-white' : 'border-gray-200 bg-gray-50/50 hover:border-gray-300'}`}
                   >
-                    <span className="absolute top-2 left-2 text-[10px] text-[#4a9d9c]">Recommended</span>
-                    <span className="font-semibold text-slate-800 text-sm mt-2">Bed Assembling</span>
-                    <span className="bg-blue-50 text-[#4a9d9c] font-semibold text-[10px] px-1.5 py-0.5 rounded ml-2 mt-2">+£50</span>
+                    <span className="absolute top-2 left-3 text-[11px] font-bold text-[#1a193f] uppercase tracking-widest">Recommended</span>
+                    <span className={`font-bold text-sm mt-4 ${assembly === 'Bed Assembling' ? 'text-[#1a193f]' : 'text-slate-800'}`}>Bed Assembling</span>
+                    <span className="bg-[#1a193f] text-white font-bold text-[11px] px-2 py-0.5 rounded ml-2 mt-1">+£50</span>
                   </button>
                 </div>
               )}
@@ -491,9 +671,12 @@ export default function ProductDetails() {
                   disabled={
                     isSofa
                       ? (!sofaSize || !sofaColor || !sofaFabric)
-                      : (isConfigurable && (isMattress ? !size : (!size || !mattress || !storageValue || !fabric || !color)))
+                      : (isWardrobe
+                          ? (!wardrobeSize || !wardrobeColor)
+                          : (isConfigurable && (isMattress ? !size : (!size || !mattress || !storageValue || !fabric || !color || (showBaseOption && !base))))
+                        )
                   }
-                  className="w-full bg-[#4a9d9c] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#3b807f] text-white px-8 py-4 font-semibold rounded-md transition"
+                  className="w-full bg-[#1a193f] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-black text-white px-8 py-5 text-lg font-bold rounded-xl transition shadow-lg hover:shadow-xl"
                 >
                   Buy Now
                 </button>
@@ -502,9 +685,12 @@ export default function ProductDetails() {
               {/* Description */}
               <div className="mt-8 border-t border-gray-100 pt-6">
                 <h3 className="text-lg font-bold mb-3 text-slate-900">Description</h3>
-                <p className="text-gray-600 leading-relaxed text-sm">
-                  {product.description || "Experience the ultimate luxury. Handcrafted beds and premium mattresses designed for perfect sleep."}
-                </p>
+                <div 
+                  className="text-gray-600 leading-relaxed text-sm"
+                  dangerouslySetInnerHTML={{ 
+                    __html: product.description || "Experience the ultimate luxury. Handcrafted beds and premium mattresses designed for perfect sleep." 
+                  }}
+                />
               </div>
 
               {/* Sofa Features */}
@@ -517,7 +703,7 @@ export default function ProductDetails() {
                     <ul className="space-y-2">
                       {feats.map((f, i) => (
                         <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
-                          <span className="text-[#4a9d9c] font-bold mt-0.5">✓</span>
+                          <span className="text-[#1a193f] font-bold mt-0.5">✓</span>
                           <span>{f}</span>
                         </li>
                       ))}

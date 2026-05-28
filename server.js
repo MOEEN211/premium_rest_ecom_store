@@ -46,7 +46,7 @@ app.post('/send-email', async (req, res) => {
   // Handle both new format and old format
   const mailOptions = {
     from: from ? `"Elitebed.uk Order" <${from}>` : `"Elitebed.uk Orders" <${process.env.VITE_SMTP_USER}>`,
-    to: to || 'moeenijaz211@gmail.com', // Send to your admin email
+    to: to || 'sales@premiumrestfurniture.co.uk', // Send to your admin email
     subject: subject || `New Order from ${customer_details?.fullName || 'Customer'} (${customer_details?.email || 'N/A'})`,
     html: html || `<h1>New Order Received!</h1>
            <h3>Customer Details:</h3>

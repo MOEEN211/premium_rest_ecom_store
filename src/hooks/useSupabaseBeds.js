@@ -8,10 +8,13 @@ export function useSupabaseBeds() {
 
   useEffect(() => {
     async function fetchData() {
-      const [{ data: bedsData }, { data: optionsData }] = await Promise.all([
-        supabase.from('beds').select('*'),
-        supabase.from('bed_options').select('*')
+      const [{ data: bedsData, error: bedsError }, { data: optionsData, error: optionsError }] = await Promise.all([
+        supabase.from('beds').select('*').limit(10000).order('created_at', { ascending: false }),
+        supabase.from('bed_options').select('*').limit(10000).order('created_at', { ascending: false })
       ]);
+
+      if (bedsError) console.error('Beds fetch error:', bedsError);
+      if (optionsError) console.error('Options fetch error:', optionsError);
 
       if (bedsData) {
         const formattedBeds = bedsData.map(bed => {
@@ -30,7 +33,7 @@ export function useSupabaseBeds() {
             isSupabase: true
           };
         });
-        setBeds(formattedBeds.reverse());
+        setBeds(formattedBeds);
       }
       
       if (optionsData) {

@@ -2,9 +2,12 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { Trash2, ExternalLink, ChevronDown, ChevronUp, Mail, MailOpen, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 
 const bedSizes = ['3FT Single', '4FT Small Double', '4FT6 Double', '5FT King Size', '6FT Super King Size'];
 const mattressSizes = ['Single Size 3ft', 'Small Double 4ft', 'Double 4ft"6', 'King 5ft"6', 'Super King 6ft"6'];
+const wardrobeColors = ['Black', 'Grey', 'White', 'Oak', 'Walnut'];
 
 export default function Admin() {
   const [name, setName] = useState('');
@@ -18,6 +21,9 @@ export default function Admin() {
   const [sofaSizes, setSofaSizes] = useState([{ caption: '', price: '' }]);
   const [sofaFeatures, setSofaFeatures] = useState(['']);
   
+  // Wardrobe specific dynamic options
+  const [wardrobeSizes, setWardrobeSizes] = useState([{ size: '', price: '' }]);
+  
   const [customPrices, setCustomPrices] = useState({});
 
   const [message, setMessage] = useState({ type: '', text: '' });
@@ -27,6 +33,7 @@ export default function Admin() {
   const [ordersLoading, setOrdersLoading] = useState(true);
   const [expandedOrder, setExpandedOrder] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
+  const [editingId, setEditingId] = useState(null); // ID of the product being edited
   const [logs, setLogs] = useState([]);
 
   const addLog = (msg) => {
@@ -41,9 +48,13 @@ export default function Admin() {
   }, []);
 
   const fetchBeds = async () => {
-    const { data, error } = await supabase.from('beds').select('*');
+    const { data, error } = await supabase
+      .from('beds')
+      .select('*')
+      .limit(10000)
+      .order('created_at', { ascending: false });
     if (!error && data) {
-      setExistingBeds(data.reverse());
+      setExistingBeds(data);
     }
   };
 
@@ -52,6 +63,7 @@ export default function Admin() {
     const { data, error } = await supabase
       .from('orders')
       .select('*')
+      .limit(10000)
       .order('created_at', { ascending: false });
     if (!error && data) setOrders(data);
     setOrdersLoading(false);
@@ -116,27 +128,77 @@ export default function Admin() {
     }
   };
 
+  const handleEdit = async (bed) => {
+    addLog(`Preparing to edit: ${bed.name}`);
+    setEditingId(bed.id);
+    setName(bed.name);
+    setDescription(bed.description);
+    setProductCategory(bed.category);
+    setStorageType(bed.storage_type || 'Gas Lift');
+    
+    const strategy = bed.base_price_type.startsWith('CUSTOM_') ? 'CUSTOM' : bed.base_price_type;
+    setPricingStrategy(strategy);
+    
+    // Fetch existing prices for this product to populate the form
+    const { data: optData } = await supabase
+      .from('bed_options')
+      .select('*')
+      .eq('base_price_type', bed.base_price_type);
+
+    if (optData) {
+      if (strategy === 'CUSTOM') {
+        const prices = {};
+        optData.filter(o => o.category === 'PRICE_FRAME').forEach(o => {
+          prices[o.value] = o.price_modifier;
+        });
+        setCustomPrices(prices);
+      } else if (bed.category === 'sofa') {
+        setSofaSizes(optData.map(o => ({ caption: o.value, price: o.price_modifier })));
+      } else if (bed.category === 'wardrobe') {
+        setWardrobeSizes(optData.map(o => ({ size: o.value, price: o.price_modifier })));
+      }
+    }
+
+    // Parse images
+    try {
+      const urls = JSON.parse(bed.image_url);
+      setImageFiles([]); 
+    } catch(e) {
+      setImageFiles([]);
+    }
+
+    // Handle Category specific resets
+    if (bed.category === 'sofa') {
+      try {
+        setSofaFeatures(bed.features ? JSON.parse(bed.features) : ['']);
+      } catch(e) { setSofaFeatures(['']); }
+    }
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
     setMessage({ type: '', text: '' });
 
     try {
-      if (imageFiles.length === 0) throw new Error("Please select at least one image file.");
-      
-      const imgArray = [];
+      let imgArray = [];
       const bucket = 'product-images';
 
-      for (let i = 0; i < imageFiles.length; i++) {
-        const file = imageFiles[i];
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
-        
-        const { error: uploadError } = await supabase.storage.from(bucket).upload(fileName, file);
-        if (uploadError) throw new Error(`Image Upload Failed: ${uploadError.message}`);
+      // Only upload if new files are selected
+      if (imageFiles.length > 0) {
+        for (let i = 0; i < imageFiles.length; i++) {
+          const file = imageFiles[i];
+          const fileExt = file.name.split('.').pop();
+          const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+          
+          const { error: uploadError } = await supabase.storage.from(bucket).upload(fileName, file);
+          if (uploadError) throw new Error(`Image Upload Failed: ${uploadError.message}`);
 
-        const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(fileName);
-        imgArray.push(publicUrl);
+          const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(fileName);
+          imgArray.push(publicUrl);
+        }
       }
 
       let finalPriceType = pricingStrategy;
@@ -144,17 +206,37 @@ export default function Admin() {
       // ── SOFA: save dynamic size options ──
       if (productCategory === 'sofa') {
         const validSizes = sofaSizes.filter(s => s.caption.trim() && s.price);
-        if (validSizes.length === 0) throw new Error('Please add at least one size option with a price.');
+        if (validSizes.length === 0 && !editingId) throw new Error('Please add at least one size option with a price.');
         
-        finalPriceType = `SOFA_${Date.now()}`;
-        const sofaSizeRows = validSizes.map(s => ({
-          base_price_type: finalPriceType,
-          category: 'SOFA_SIZE',
-          value: s.caption.trim(),
-          price_modifier: parseFloat(s.price).toFixed(2)
-        }));
-        const { error: sofaOptErr } = await supabase.from('bed_options').insert(sofaSizeRows);
-        if (sofaOptErr) throw sofaOptErr;
+        if (validSizes.length > 0) {
+          finalPriceType = `SOFA_${Date.now()}`;
+          const sofaSizeRows = validSizes.map(s => ({
+            base_price_type: finalPriceType,
+            category: 'SOFA_SIZE',
+            value: s.caption.trim(),
+            price_modifier: parseFloat(s.price).toFixed(2)
+          }));
+          const { error: sofaOptErr } = await supabase.from('bed_options').insert(sofaSizeRows);
+          if (sofaOptErr) throw sofaOptErr;
+        }
+      }
+      
+      // ── WARDROBE: save dynamic size options ──
+      if (productCategory === 'wardrobe') {
+        const validSizes = wardrobeSizes.filter(s => s.size.trim() && s.price);
+        if (validSizes.length === 0 && !editingId) throw new Error('Please add at least one size option with a price.');
+        
+        if (validSizes.length > 0) {
+          finalPriceType = `WARDROBE_${Date.now()}`;
+          const wardrobeSizeRows = validSizes.map(s => ({
+            base_price_type: finalPriceType,
+            category: 'WARDROBE_SIZE',
+            value: s.size.trim(),
+            price_modifier: parseFloat(s.price).toFixed(2)
+          }));
+          const { error: wardrobeOptErr } = await supabase.from('bed_options').insert(wardrobeSizeRows);
+          if (wardrobeOptErr) throw wardrobeOptErr;
+        }
       }
       
       if (pricingStrategy === 'CUSTOM') {
@@ -165,7 +247,10 @@ export default function Admin() {
          
          for (const sizeLabel of activeSizes) {
            const basePriceVal = parseFloat(customPrices[sizeLabel]);
-           if (!basePriceVal && basePriceVal !== 0) throw new Error(`Please provide a price for ${sizeLabel}`);
+           if (!basePriceVal && basePriceVal !== 0) {
+             if (editingId) continue; // If editing, maybe they don't want to change prices
+             throw new Error(`Please provide a price for ${sizeLabel}`);
+           }
 
            priceRows.push({
              base_price_type: finalPriceType,
@@ -188,33 +273,65 @@ export default function Admin() {
            }
          }
          
-         const { error: optError } = await supabase.from('bed_options').insert(priceRows);
-         if (optError) throw optError;
+         if (priceRows.length > 0) {
+            const { error: optError } = await supabase.from('bed_options').insert(priceRows);
+            if (optError) throw optError;
+         }
       }
 
       // ── Save features as JSON (sofa) ──
       const validFeatures = sofaFeatures.filter(f => f.trim());
       const featuresJson = validFeatures.length > 0 ? JSON.stringify(validFeatures) : null;
-  
-      const { error: bedError } = await supabase.from('beds').insert([{
-        name,
-        description,
-        category: productCategory,
-        base_price_type: finalPriceType,
-        storage_type: productCategory === 'bed' ? storageType : null,
-        image_url: JSON.stringify(imgArray),
-        features: featuresJson
-      }]);
 
-      if (bedError) throw bedError;
+      if (editingId) {
+        // ── UPDATE EXISTING ──
+        const updateData = {
+          name,
+          description,
+          category: productCategory,
+          base_price_type: finalPriceType,
+          storage_type: productCategory === 'bed' ? storageType : null,
+          features: featuresJson
+        };
+        
+        // Only update images if new ones were selected
+        if (imgArray.length > 0) {
+          updateData.image_url = JSON.stringify(imgArray);
+        }
 
-      setMessage({ type: 'success', text: `Product "${name}" successfully uploaded to the store!` });
+        const { error: updateErr } = await supabase
+          .from('beds')
+          .update(updateData)
+          .eq('id', editingId);
+
+        if (updateErr) throw updateErr;
+        setMessage({ type: 'success', text: `Product "${name}" successfully updated!` });
+      } else {
+        // ── INSERT NEW ──
+        if (imageFiles.length === 0) throw new Error("Please select at least one image file.");
+        
+        const { error: bedError } = await supabase.from('beds').insert([{
+          name,
+          description,
+          category: productCategory,
+          base_price_type: finalPriceType,
+          storage_type: productCategory === 'bed' ? storageType : null,
+          image_url: JSON.stringify(imgArray),
+          features: featuresJson
+        }]);
+
+        if (bedError) throw bedError;
+        setMessage({ type: 'success', text: `Product "${name}" successfully uploaded to the store!` });
+      }
+
+      setEditingId(null);
       setName('');
       setDescription('');
       setImageFiles([]);
       setCustomPrices({});
       setSofaSizes([{ caption: '', price: '' }]);
       setSofaFeatures(['']);
+      setWardrobeSizes([{ size: '', price: '' }]);
       
       fetchBeds(); 
       
@@ -230,10 +347,13 @@ export default function Admin() {
     setCustomPrices({});
     setSofaSizes([{ caption: '', price: '' }]);
     setSofaFeatures(['']);
+    setWardrobeSizes([{ size: '', price: '' }]);
     if (val === 'mattress') {
       setPricingStrategy('CUSTOM');
     } else if (val === 'sofa') {
       setPricingStrategy('SOFA');
+    } else if (val === 'wardrobe') {
+      setPricingStrategy('WARDROBE');
     } else {
       setPricingStrategy('HILTON');
     }
@@ -257,7 +377,17 @@ export default function Admin() {
         )}
 
         <div className="bg-white p-8 border border-gray-100 shadow-sm rounded-sm mb-12">
-          <h2 className="text-xl font-bold text-slate-900 mb-6">Add New Product</h2>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold text-slate-900">{editingId ? 'Edit Product' : 'Add New Product'}</h2>
+            {editingId && (
+              <button 
+                onClick={() => { setEditingId(null); setName(''); setDescription(''); setImageFiles([]); }} 
+                className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-1 rounded"
+              >
+                Cancel Edit
+              </button>
+            )}
+          </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             
@@ -283,6 +413,13 @@ export default function Admin() {
                 </label>
                 <p className="text-xs text-gray-500 mt-1 ml-6">Dynamic sofa with custom features, sizes, fabrics, and colors.</p>
               </div>
+              <div className="flex-1 border p-4 rounded-sm border-gray-200">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="radio" value="wardrobe" checked={productCategory === 'wardrobe'} onChange={() => handleCategoryChange('wardrobe')} className="w-4 h-4 text-[#0a1128]" />
+                  <span className="font-semibold text-slate-900">Wardrobe</span>
+                </label>
+                <p className="text-xs text-gray-500 mt-1 ml-6">Wardrobe with custom sizes and prices. Available in 5 colors.</p>
+              </div>
             </div>
 
             <div>
@@ -292,13 +429,21 @@ export default function Admin() {
 
             <div>
               <label className="block text-sm font-semibold text-slate-900 mb-2">Description</label>
-              <textarea required value={description} onChange={e => setDescription(e.target.value)} rows="4" className="w-full p-3 border border-gray-300 rounded-sm focus:border-slate-900 focus:outline-none"></textarea>
+              <div className="bg-white">
+                <ReactQuill 
+                  theme="snow" 
+                  value={description} 
+                  onChange={setDescription}
+                  className="h-64 mb-12"
+                  placeholder="Describe the product features, materials, and benefits..."
+                />
+              </div>
             </div>
 
             <div>
               <label className="block text-sm font-semibold text-slate-900 mb-2">Upload Images</label>
               <input type="file" multiple accept="image/jpeg, image/png, image/webp" onChange={e => setImageFiles(prev => [...prev, ...Array.from(e.target.files)])} className="w-full p-2 border border-gray-300 rounded-sm focus:border-slate-900 focus:outline-none bg-white" />
-              <p className="text-xs text-gray-500 mt-2">The first image will be the main thumbnail.</p>
+              <p className="text-xs text-gray-500 mt-2">{editingId ? 'Only upload new images if you want to replace the current ones.' : 'The first image will be the main thumbnail.'}</p>
               
               {imageFiles.length > 0 && (
                 <div className="flex gap-3 mt-4 flex-wrap">
@@ -347,14 +492,14 @@ export default function Admin() {
                       className="flex-1 p-2.5 border border-gray-300 rounded-sm text-sm focus:border-slate-900 focus:outline-none"
                     />
                     <span className="text-gray-400 font-bold">£</span>
-                    <input
-                      type="number"
-                      min="1"
-                      placeholder="Price"
-                      value={row.price}
-                      onChange={e => setSofaSizes(prev => prev.map((r, i) => i === idx ? { ...r, price: e.target.value } : r))}
-                      className="w-28 p-2.5 border border-gray-300 rounded-sm text-sm focus:border-slate-900 focus:outline-none"
-                    />
+                      <input
+                        type="text"
+                        min="1"
+                        placeholder="Price"
+                        value={row.price}
+                        onChange={e => setSofaSizes(prev => prev.map((r, i) => i === idx ? { ...r, price: e.target.value } : r))}
+                        className="w-28 p-2.5 border border-gray-300 rounded-sm text-sm focus:border-slate-900 focus:outline-none"
+                      />
                     {sofaSizes.length > 1 && (
                       <button
                         type="button"
@@ -402,8 +547,74 @@ export default function Admin() {
               </div>
             )}
 
+            {/* Wardrobe-specific: Dynamic Sizes */}
+            {productCategory === 'wardrobe' && (
+              <div className="border-t border-gray-100 pt-6 mt-6 space-y-4">
+                <div className="flex items-center justify-between">
+                  <label className="block text-sm font-semibold text-slate-900">Wardrobe Size Options & Prices (£)</label>
+                  <button
+                    type="button"
+                    onClick={() => setWardrobeSizes(prev => [...prev, { size: '', price: '' }])}
+                    className="text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-sm border border-slate-200 transition"
+                  >
+                    + Add Size
+                  </button>
+                </div>
+                <p className="text-xs text-gray-500">e.g. "80cm Wide" → £299. The customer's price will be based on the size they select.</p>
+                {wardrobeSizes.map((row, idx) => (
+                  <div key={idx} className="flex gap-3 items-center">
+                    <input
+                      type="text"
+                      placeholder="Size label (e.g. 80cm Wide)"
+                      value={row.size}
+                      onChange={e => setWardrobeSizes(prev => prev.map((r, i) => i === idx ? { ...r, size: e.target.value } : r))}
+                      className="flex-1 p-2.5 border border-gray-300 rounded-sm text-sm focus:border-slate-900 focus:outline-none"
+                    />
+                    <span className="text-gray-400 font-bold">£</span>
+                    <input
+                      type="text"
+                      min="1"
+                      placeholder="Price"
+                      value={row.price}
+                      onChange={e => setWardrobeSizes(prev => prev.map((r, i) => i === idx ? { ...r, price: e.target.value } : r))}
+                      className="w-28 p-2.5 border border-gray-300 rounded-sm text-sm focus:border-slate-900 focus:outline-none"
+                    />
+                    {wardrobeSizes.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => setWardrobeSizes(prev => prev.filter((_, i) => i !== idx))}
+                        className="text-rose-400 hover:text-rose-600 text-lg font-bold transition"
+                      >✕</button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Wardrobe-specific: Colors */}
+            {productCategory === 'wardrobe' && (
+              <div className="border-t border-gray-100 pt-6 mt-2 space-y-4">
+                <label className="block text-sm font-semibold text-slate-900">Available Colors</label>
+                <p className="text-xs text-gray-500">Wardrobes are available in these 5 standard colors.</p>
+                <div className="flex flex-wrap gap-3">
+                  {wardrobeColors.map(color => (
+                    <div key={color} className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-sm border border-gray-200">
+                      <div className={`w-4 h-4 rounded-sm border border-gray-300 ${
+                        color === 'Black' ? 'bg-black' :
+                        color === 'Grey' ? 'bg-gray-500' :
+                        color === 'White' ? 'bg-white' :
+                        color === 'Oak' ? 'bg-amber-700' :
+                        'bg-amber-900'
+                      }`}></div>
+                      <span className="text-sm font-medium text-slate-700">{color}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Bed/Mattress pricing strategy */}
-            {productCategory !== 'sofa' && (
+            {productCategory !== 'sofa' && productCategory !== 'wardrobe' && (
               <div className="border-t border-gray-100 pt-6 mt-6">
                 <label className="block text-sm font-semibold text-slate-900 mb-2">Pricing Matrix Strategy</label>
                 <select 
@@ -413,13 +624,13 @@ export default function Admin() {
                   className="w-full p-3 border border-gray-300 rounded-sm focus:border-slate-900 focus:outline-none bg-white font-medium text-slate-800 disabled:opacity-50"
                 >
                   {productCategory === 'bed' && <option value="HILTON">Use Standard 'Hilton' Pricing (Default)</option>}
-                  {productCategory === 'bed' && <option value="SLEIGH">Use Premium 'Sleigh Arizona' Pricing</option>}
+                  {productCategory === 'bed' && <option value="SLEIGH_ARIZONA">Use Premium 'Sleigh Arizona' Pricing</option>}
                   <option value="CUSTOM">Create Custom Fixed Prices (Required for Mattresses)</option>
                 </select>
               </div>
             )}
             
-            {pricingStrategy === 'CUSTOM' && productCategory !== 'sofa' && (
+            {pricingStrategy === 'CUSTOM' && productCategory !== 'sofa' && productCategory !== 'wardrobe' && (
               <div className="bg-slate-100 p-6 rounded-sm border border-slate-200 space-y-4">
                  <h3 className="font-semibold text-slate-800 text-sm">Define Custom Prices (£)</h3>
                  
@@ -427,15 +638,15 @@ export default function Admin() {
                    {activeSizes.map(size => (
                      <div key={size}>
                        <label className="block text-xs font-medium text-slate-700 mb-1">{size}</label>
-                       <input 
-                         required 
-                         type="number" 
-                         min="1"
-                         value={customPrices[size] || ''}
-                         onChange={e => setCustomPrices({...customPrices, [size]: e.target.value})}
-                         placeholder={`Price for ${size}`}
-                         className="w-full p-2 border border-slate-300 rounded-sm"
-                       />
+                        <input 
+                          required 
+                          type="text" 
+                          min="1"
+                          value={customPrices[size] || ''}
+                          onChange={e => setCustomPrices({...customPrices, [size]: e.target.value})}
+                          placeholder={`Price for ${size}`}
+                          className="w-full p-2 border border-slate-300 rounded-sm"
+                        />
                      </div>
                    ))}
                  </div>
@@ -443,7 +654,7 @@ export default function Admin() {
             )}
 
             <button type="submit" disabled={isSubmitting} className="w-full bg-[#0a1128] hover:bg-black text-white font-bold py-4 px-6 rounded-sm transition disabled:opacity-50">
-              {isSubmitting ? 'Uploading to Store...' : 'Upload Product to Store'}
+              {isSubmitting ? (editingId ? 'Updating Product...' : 'Uploading to Store...') : (editingId ? 'Update Product' : 'Upload Product to Store')}
             </button>
           </form>
         </div>
@@ -474,10 +685,18 @@ export default function Admin() {
                     </div>
                   </div>
                   
-                  <div className="flex items-center gap-3 relative z-30">
-                    <Link to={`/product/${bed.id}`} target="_blank" className="text-blue-600 hover:underline text-xs font-bold mr-2">Preview</Link>
-                    
-                    {deletingId === bed.id ? (
+                    <div className="flex items-center gap-3">
+                      <Link to={`/product/${bed.id}`} target="_blank" className="text-blue-600 hover:underline text-xs font-bold mr-2">Preview</Link>
+                      
+                      <button 
+                        type="button" 
+                        onClick={() => handleEdit(bed)}
+                        className="bg-teal-50 text-teal-600 hover:bg-teal-600 hover:text-white px-4 py-2 rounded-sm text-xs font-bold transition-all border border-teal-100 cursor-pointer shadow-sm"
+                      >
+                        Edit
+                      </button>
+
+                      {deletingId === bed.id ? (
                       <div className="flex items-center gap-2 bg-rose-50 p-1 rounded border border-rose-200">
                         <span className="text-[10px] font-bold text-rose-700 px-1">Delete?</span>
                         <button 

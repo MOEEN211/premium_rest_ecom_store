@@ -10,7 +10,7 @@ const SEO = ({
   breadcrumbs = [],
   type = 'website'
 }) => {
-  const siteTitle = 'Elitebed UK';
+  const siteTitle = 'PremiumRest';
   const fullTitle = title ? `${title} | ${siteTitle}` : siteTitle;
   
   // Default UK-focused values
@@ -38,7 +38,7 @@ const SEO = ({
     "image": product.gallery || [product.img],
     "brand": {
       "@type": "Brand",
-      "name": "Elitebed UK"
+      "name": "PremiumRest"
     },
     "offers": {
       "@type": "Offer",
@@ -47,8 +47,8 @@ const SEO = ({
       "availability": "https://schema.org/InStock",
       "seller": {
         "@type": "Organization",
-        "name": "Elitebed UK",
-        "url": "https://elitebed.co.uk"
+        "name": "PremiumRest",
+        "url": "https://premiumrestfurniture.co.uk"
       },
       "shippingDetails": {
         "@type": "OfferShippingDetails",
@@ -131,13 +131,13 @@ const SEO = ({
   const localBusinessStructuredData = {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
-    "name": "Elitebed UK - Luxury Beds & Mattresses",
+    "name": "PremiumRest - Luxury Beds & Mattresses",
     "description": "Premium UK bed and mattress retailer offering luxury bedroom furniture with free delivery across the United Kingdom, 0% finance, and 100-night comfort guarantee.",
-    "url": "https://elitebed.co.uk",
-    "logo": "https://elitebed.co.uk/logo.png",
-    "image": "https://elitebed.co.uk/storefront.jpg",
-    "telephone": "+44-20-XXXX-XXXX",
-    "email": "info@elitebed.co.uk",
+    "url": "https://premiumrestfurniture.co.uk",
+    "logo": "https://premiumrestfurniture.co.uk/logo.png",
+    "image": "https://premiumrestfurniture.co.uk/storefront.jpg",
+    "telephone": "+44-7783-699250",
+    "email": "sales@premiumrestfurniture.co.uk",
     "priceRange": "££-£££",
     "address": {
       "@type": "PostalAddress",
@@ -256,11 +256,7 @@ const SEO = ({
       }
     ],
     "sameAs": [
-      "https://www.facebook.com/elitebeduk",
-      "https://www.instagram.com/elitebeduk", 
-      "https://www.twitter.com/elitebeduk",
-      "https://www.pinterest.co.uk/elitebeduk",
-      "https://www.linkedin.com/company/elitebeduk"
+      "https://www.instagram.com/premiumrest4"
     ]
   };
 
@@ -270,7 +266,7 @@ const SEO = ({
       <title>{fullTitle}</title>
       <meta name="description" content={description || defaultDescription} />
       <meta name="keywords" content={keywords || defaultKeywords} />
-      <meta name="author" content="Elitebed.co.uk" />
+      <meta name="author" content="PremiumRest.co.uk" />
       <meta name="robots" content="index, follow" />
       <meta name="language" content="English" />
       <meta name="geo.region" content="GB" />
@@ -278,25 +274,25 @@ const SEO = ({
       
       {/* Canonical URL */}
       {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
-      <link rel="alternate" hreflang="en-gb" href={canonicalUrl || 'https://elitebed.co.uk/'} />
+      <link rel="alternate" hreflang="en-gb" href={canonicalUrl || 'https://premiumrestfurniture.co.uk/'} />
       
       {/* Open Graph / Facebook */}
       <meta property="og:type" content={type} />
-      <meta property="og:url" content={canonicalUrl || 'https://elitebed.co.uk/'} />
+      <meta property="og:url" content={canonicalUrl || 'https://premiumrestfurniture.co.uk/'} />
       <meta property="og:title" content={fullTitle} />
       <meta property="og:description" content={description || defaultDescription} />
-      <meta property="og:image" content={ogImage || 'https://elitebed.co.uk/og-image.jpg'} />
+      <meta property="og:image" content={ogImage || 'https://premiumrestfurniture.co.uk/og-image.jpg'} />
       <meta property="og:image:width" content="1200" />
       <meta property="og:image:height" content="630" />
-      <meta property="og:site_name" content="Elitebed UK" />
+      <meta property="og:site_name" content="PremiumRest" />
       <meta property="og:locale" content="en_GB" />
       
       {/* Twitter */}
       <meta property="twitter:card" content="summary_large_image" />
-      <meta property="twitter:url" content={canonicalUrl || 'https://elitebed.co.uk/'} />
+      <meta property="twitter:url" content={canonicalUrl || 'https://premiumrestfurniture.co.uk/'} />
       <meta property="twitter:title" content={fullTitle} />
       <meta property="twitter:description" content={description || defaultDescription} />
-      <meta property="twitter:image" content={ogImage || 'https://elitebed.co.uk/og-image.jpg'} />
+      <meta property="twitter:image" content={ogImage || 'https://premiumrestfurniture.co.uk/og-image.jpg'} />
       
       {/* Additional Meta Tags */}
       <meta name="theme-color" content="#4a9d9c" />

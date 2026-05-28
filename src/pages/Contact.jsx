@@ -1,12 +1,12 @@
 import { useState } from 'react';
-import { Phone, Mail, MapPin, Globe, Instagram } from 'lucide-react';
+import { Phone, Mail, MapPin, Globe, Instagram, Facebook } from 'lucide-react';
 
 export default function Contact() {
   const [formData, setFormData] = useState({ name: '', message: '' });
 
   const handleWhatsAppSubmit = (e) => {
     e.preventDefault();
-    const phoneNumber = "447933831237";
+    const phoneNumber = "447783699250";
     const text = encodeURIComponent(`Hello, my name is ${formData.name}.\n\n${formData.message}`);
     window.open(`https://wa.me/${phoneNumber}?text=${text}`, '_blank');
   };
@@ -30,7 +30,7 @@ export default function Contact() {
                 </div>
                 <div>
                   <h3 className="text-lg font-medium text-slate-900">Phone</h3>
-                  <p className="text-gray-500 mt-1">+44 7933 831237</p>
+                  <p className="text-gray-500 mt-1">+44 7783 699250</p>
                   <p className="text-sm text-gray-400 mt-1">Every day 24 hours</p>
                 </div>
               </div>
@@ -40,7 +40,7 @@ export default function Contact() {
                 </div>
                 <div>
                   <h3 className="text-lg font-medium text-slate-900">Email</h3>
-                  <p className="text-gray-500 mt-1">ebedsuk@gmail.com</p>
+                  <p className="text-gray-500 mt-1">sales@premiumrestfurniture.co.uk</p>
                   <p className="text-sm text-gray-400 mt-1">Every day 24 hours</p>
                 </div>
               </div>
@@ -50,7 +50,7 @@ export default function Contact() {
                 </div>
                 <div>
                   <h3 className="text-lg font-medium text-slate-900">Location</h3>
-                  <p className="text-gray-500 mt-1">Dewsbury, UK</p>
+                  <p className="text-gray-500 mt-1">Deansgate Greater Manchester</p>
                 </div>
               </div>
               <div className="flex items-start gap-4">
@@ -59,7 +59,16 @@ export default function Contact() {
                 </div>
                 <div>
                   <h3 className="text-lg font-medium text-slate-900">Instagram</h3>
-                  <a href="https://www.instagram.com/elitebed.uk?utm_source=qr&igsh=MWR5cWdva3IyZ2gwMQ==" target="_blank" rel="noopener noreferrer" className="text-rose-600 hover:underline mt-1 block">@elitebed.uk</a>
+                  <a href="https://www.instagram.com/premiumrestfurniture?igsh=MTB1YW0xZmQwOGljZw==" target="_blank" rel="noopener noreferrer" className="text-rose-600 hover:underline mt-1 block">@premiumrestfurniture</a>
+                </div>
+              </div>
+              <div className="flex items-start gap-4">
+                <div className="bg-blue-50 text-blue-600 p-4 rounded-full">
+                  <Facebook size={24} />
+                </div>
+                <div>
+                  <h3 className="text-lg font-medium text-slate-900">Facebook</h3>
+                  <a href="https://www.facebook.com/share/195BYrdNuY/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline mt-1 block">PremiumRest Furniture</a>
                 </div>
               </div>
             </div>

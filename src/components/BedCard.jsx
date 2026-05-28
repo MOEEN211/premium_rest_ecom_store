@@ -1,91 +1,139 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ShoppingCart, ChevronRight, Star } from 'lucide-react';
+import { ShoppingCart, ChevronRight, Star, ChevronLeft } from 'lucide-react';
 
 export default function BedCard({ product, options = [] }) {
-  const baseType = product.base_price_type;
-  const isMattress = product.category === 'mattress';
-  const isSofa = product.category === 'sofa';
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const images = product.gallery && product.gallery.length > 0 ? product.gallery : [product.img];
+
+  const nextImage = (e) => {
+    e.preventDefault();
+    setCurrentImageIndex((prev) => (prev + 1) % images.length);
+  };
   
-  let displayPrice = 160;
+  const prevImage = (e) => {
+    e.preventDefault();
+    setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
+  };
+
+  let displayPrice = (product.price && parseFloat(product.price) > 0) ? parseFloat(product.price) : 0;
   
-  if (isSofa) {
-    const sofaOptions = options.filter(o => o.category === 'SOFA_SIZE' && o.base_price_type === baseType);
-    if (sofaOptions.length > 0) {
-      displayPrice = Math.min(...sofaOptions.map(o => parseFloat(o.price_modifier) || 0));
-    } else {
-      displayPrice = 250; 
+  const baseType = product.base_price_type ? String(product.base_price_type).trim().toLowerCase() : null;
+  const productOptions = options.filter(o => 
+    o.base_price_type && 
+    String(o.base_price_type).trim().toLowerCase() === baseType
+  );
+
+  if (productOptions.length > 0) {
+    const relevantOptions = productOptions.filter(o => 
+      ['PRICE_FRAME', 'SOFA_SIZE', 'WARDROBE_SIZE', 'PRICE_FULLSET'].includes(o.category)
+    );
+    const priceCandidates = (relevantOptions.length > 0 ? relevantOptions : productOptions)
+      .map(o => parseFloat(o.price_modifier))
+      .filter(p => !isNaN(p) && p > 0);
+
+    if (priceCandidates.length > 0) {
+      displayPrice = Math.min(...priceCandidates);
     }
-  } else {
-    const targetSize = isMattress ? 'Single Size 3ft' : '3FT Single';
-    const sizeOption = options.find(o => o.category === 'PRICE_FRAME' && o.value === targetSize && o.base_price_type === baseType);
-    displayPrice = sizeOption ? parseFloat(sizeOption.price_modifier) : (isMattress ? 110 : 160);
+  }
+  
+  if (displayPrice === 0 && productOptions.length > 0) {
+    const anyPrices = productOptions.map(o => parseFloat(o.price_modifier)).filter(p => !isNaN(p) && p > 0);
+    if (anyPrices.length > 0) {
+      displayPrice = Math.min(...anyPrices);
+    }
   }
 
+  const oldPrice = displayPrice > 0 ? Math.floor(displayPrice * 1.66) : 0;
+  const saveAmount = oldPrice - displayPrice;
+
   return (
-    <div className="group relative border border-gray-200 rounded-lg flex flex-col h-full bg-white overflow-hidden shadow-sm hover:shadow-lg transition-shadow duration-300">
+    <div className="group relative bg-white rounded-xl border border-gray-100 shadow-[0_2px_12px_rgba(0,0,0,0.04)] flex flex-col h-full overflow-hidden hover:shadow-[0_8px_24px_rgba(0,0,0,0.12)] transition-all duration-300">
       
       {/* Top Image Section */}
-      <Link to={`/product/${product.id}`} className="block aspect-[4/3] bg-gray-100 overflow-hidden relative">
+      <Link to={`/product/${product.id}`} className="block aspect-[4/3] bg-gray-50 overflow-hidden relative">
         <img 
-          src={product.img} 
+          src={images[currentImageIndex]} 
           alt={product.name} 
-          className="w-full h-full object-cover group-hover:scale-105 transition duration-500" 
+          className="w-full h-full object-cover" 
         />
         
-        {/* Sale Ribbon Triangle */}
-        <div className="absolute top-0 left-0 w-16 h-16 overflow-hidden z-10">
-           <div className="absolute top-[18px] -left-6 w-24 bg-[#0a1128] text-white text-[10px] font-bold py-1 text-center rotate-[-45deg] z-20">
-             Sale
-           </div>
-        </div>
+        {/* Save Badge */}
+        {saveAmount > 0 && (
+          <div className="absolute top-4 left-4 bg-[#2a2a2a] text-white text-[11px] font-semibold py-1 px-2.5 rounded shadow-sm z-20">
+            Save £{saveAmount.toFixed(0)}
+          </div>
+        )}
+        
+        {/* Slider Controls */}
+        {images.length > 1 && (
+            <div className="opacity-0 group-hover:opacity-100 transition-opacity absolute inset-0 flex items-center justify-between px-2">
+                <div onClick={prevImage} className="w-6 h-6 rounded-full bg-white/80 flex items-center justify-center shadow-sm cursor-pointer hover:bg-white text-gray-700 z-30">
+                    <ChevronLeft size={16} />
+                </div>
+                <div onClick={nextImage} className="w-6 h-6 rounded-full bg-white/80 flex items-center justify-center shadow-sm cursor-pointer hover:bg-white text-gray-700 z-30">
+                    <ChevronRight size={16} />
+                </div>
+            </div>
+        )}
+        
+        {/* Slider Dots */}
+        {images.length > 1 && (
+            <div className="absolute bottom-3 left-0 w-full flex justify-center gap-1.5 z-20">
+                {images.map((_, idx) => (
+                    <span 
+                        key={idx}
+                        className={`w-1.5 h-1.5 rounded-full bg-white transition-opacity ${idx === currentImageIndex ? 'opacity-100' : 'opacity-40'}`} 
+                    />
+                ))}
+            </div>
+        )}
       </Link>
       
       {/* Detail Section */}
-      <div className="p-4 flex-1 flex flex-col">
-        <h3 className="text-[15px] font-bold text-slate-900 mb-3 line-clamp-1" title={product.name}>
+      <div className="p-4 sm:p-5 flex-1 flex flex-col bg-white">
+        
+        {/* Rating and Price row */}
+        <div className="flex justify-between items-start mb-2">
+          <div className="flex flex-col gap-1.5">
+             <div className="flex items-center gap-0.5">
+                <Star size={12} fill="#eab308" color="#eab308" />
+                <Star size={12} fill="#eab308" color="#eab308" />
+                <Star size={12} fill="#eab308" color="#eab308" />
+                <Star size={12} fill="#eab308" color="#eab308" />
+                <Star size={12} fill="#eab308" color="#eab308" />
+                <span className="bg-[#2a2a2a] text-white text-[10px] font-bold px-1 rounded-sm ml-1.5 leading-tight">5.0</span>
+             </div>
+          </div>
+          <div className="flex items-end gap-1.5">
+            <span className="text-[17px] font-bold text-black tracking-tight">£{displayPrice.toFixed(0)}</span>
+            <span className="text-[11px] text-gray-400 line-through mb-0.5">£{oldPrice.toFixed(1)}</span>
+          </div>
+        </div>
+
+        <h3 className="text-[15px] text-gray-800 font-medium line-clamp-1 mb-4 flex-1">
           {product.name}
         </h3>
-        
-        {/* Rating */}
-        <div className="flex items-center gap-1 mb-3">
-          <span className="bg-yellow-100 text-yellow-800 text-[11px] font-bold px-1.5 py-0.5 rounded-sm flex items-center mr-1">
-            5.0
-          </span>
-          <Star size={14} fill="#fbbf24" color="#fbbf24" strokeWidth={1} />
-          <Star size={14} fill="#fbbf24" color="#fbbf24" strokeWidth={1} />
-          <Star size={14} fill="#fbbf24" color="#fbbf24" strokeWidth={1} />
-          <Star size={14} fill="#fbbf24" color="#fbbf24" strokeWidth={1} />
-          <Star size={14} fill="#fbbf24" color="#fbbf24" strokeWidth={1} />
-        </div>
 
-        {/* Pricing */}
-        <div className="flex items-end gap-2 mb-4">
-          <span className="text-[22px] font-bold text-[#0a1128]">£{displayPrice.toFixed(0)}</span>
-        </div>
-
-        {/* Buttons */}
-        <div className="grid grid-cols-2 gap-2 mt-auto">
-          <Link 
-            to={`/product/${product.id}`} 
-            className="flex items-center justify-center gap-1.5 bg-[#4a9d9c] hover:bg-[#3b807f] text-white py-2.5 px-2 rounded-md font-semibold text-[13px] transition-colors"
-          >
-            <ShoppingCart size={14} /> Add to Cart
-          </Link>
-
-          <Link 
-            to={`/product/${product.id}`}
-            className="flex items-center justify-center gap-1.5 bg-[#0a1128] hover:bg-black text-white py-2.5 px-2 rounded-md font-semibold text-[13px] transition-colors"
-          >
-            View <ChevronRight size={14} />
-          </Link>
-        </div>
-
-        {/* Footer */}
-        <div className="mt-4 pt-3 text-[11px] text-slate-800 font-medium">
-          Next Day Delivery / Select Day
+        {/* Action Buttons */}
+        <div className="flex justify-between items-center mt-auto border-t border-gray-100 pt-4">
+            <Link 
+                to={`/product/${product.id}`} 
+                className="w-10 h-10 rounded-full bg-[#2a2a2a] hover:bg-black text-white flex items-center justify-center transition-colors shadow-sm"
+                title="Add to Cart"
+            >
+                <ShoppingCart size={18} strokeWidth={1.5} />
+            </Link>
+            
+            <Link 
+                to={`/product/${product.id}`}
+                className="w-10 h-10 rounded-full border border-gray-200 text-gray-600 hover:text-black hover:border-black flex items-center justify-center transition-colors"
+                title="View details"
+            >
+                <ChevronRight size={18} strokeWidth={1.5} />
+            </Link>
         </div>
       </div>
-
     </div>
   );
 }

@@ -1,66 +1,89 @@
 import { Link } from 'react-router-dom';
-import { Mail, Phone, MapPin, Facebook, Instagram } from 'lucide-react';
+import { Mail, Phone, Facebook, Instagram, MessageCircle } from 'lucide-react';
 
 export default function Footer() {
   return (
-    <footer className="bg-slate-900 text-gray-300">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+    <footer className="bg-[#222222] text-gray-300 font-sans">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
           
-          <div className="space-y-4">
-            <h3 className="text-2xl font-serif text-white tracking-tight">Elitebed.uk</h3>
-            <p className="text-sm">
-              Discover the ultimate sleep experience with our premium selection of luxury beds, mattresses, and bedroom furniture. Designed for comfort, built for life.
+          <div className="md:col-span-1 space-y-6">
+            <h2 className="text-4xl font-bold text-white tracking-tight leading-tight">We're Happy to<br/>Help!</h2>
+            <p className="text-sm text-gray-300 leading-relaxed">
+              Need help choosing the perfect bed or mattress? Our friendly team at PremiumRest Furniture has the knowledge and passion to help you find your ideal sleep solution. Just pick up the phone and give us a ring.
             </p>
-            <div className="flex space-x-4 pt-2">
-              <a href="https://www.facebook.com/share/18PF9Yy6NS/" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition"><Facebook size={20} /></a>
-              <a href="https://www.instagram.com/elitebed.uk?utm_source=qr&igsh=MWR5cWdva3IyZ2gwMQ==" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition"><Instagram size={20} /></a>
+            <p className="text-sm text-gray-300 leading-relaxed">
+              Or drop us an email. We love helping you create the perfect bedroom and are always happy to help.
+            </p>
+            
+            <div className="space-y-4 pt-2">
+              <a href="tel:+447783699250" className="flex items-center gap-3 font-bold text-white hover:text-green-500 transition">
+                <Phone size={20} />
+                <span>+44 7783 699250</span>
+              </a>
+              <a href="mailto:sales@premiumrestfurniture.co.uk" className="flex items-center gap-3 font-bold text-white hover:text-green-500 transition">
+                <Mail size={20} />
+                <span>sales@premiumrestfurniture.co.uk</span>
+              </a>
+            </div>
+
+            <div className="flex items-center gap-4 pt-4">
+              <a href="https://wa.me/447783699250" target="_blank" rel="noopener noreferrer" className="bg-[#25D366] p-2 rounded-full text-white hover:scale-110 transition">
+                <MessageCircle size={20} />
+              </a>
+              <a href="https://www.facebook.com/share/195BYrdNuY/" target="_blank" rel="noopener noreferrer" className="bg-[#1877F2] p-2 rounded-full text-white hover:scale-110 transition">
+                <Facebook size={20} />
+              </a>
+              <a href="https://www.instagram.com/premiumrestfurniture?igsh=MTB1YW0xZmQwOGljZw==" target="_blank" rel="noopener noreferrer" className="bg-[#E4405F] p-2 rounded-full text-white hover:scale-110 transition">
+                <Instagram size={20} />
+              </a>
             </div>
           </div>
 
           <div>
-            <h4 className="text-lg font-medium text-white mb-4">Quick Links</h4>
-            <ul className="space-y-2 text-sm">
+            <h4 className="text-base font-bold text-white mb-6">Support & Info</h4>
+            <ul className="space-y-3 text-sm text-gray-400">
               <li><Link to="/" className="hover:text-white transition">Home</Link></li>
-              <li><Link to="/shop" className="hover:text-white transition">Shop All</Link></li>
-              <li><Link to="/shop?category=bed" className="hover:text-white transition">Luxury Beds</Link></li>
-              <li><Link to="/shop?category=mattress" className="hover:text-white transition">Premium Mattresses</Link></li>
-              <li><Link to="/blogs" className="hover:text-white transition">Sleep Articles</Link></li>
+              <li><Link to="/blogs" className="hover:text-white transition">Articles</Link></li>
             </ul>
           </div>
 
           <div>
-            <h4 className="text-lg font-medium text-white mb-4">Information</h4>
-            <ul className="space-y-2 text-sm">
-              <li><Link to="/contact" className="hover:text-white transition">Contact Us</Link></li>
-              <li><Link to="/delivery" className="hover:text-white transition">Delivery Information</Link></li>
-              <li><Link to="/returns" className="hover:text-white transition">Returns Policy (100% Refund)</Link></li>
-              <li><Link to="/terms" className="hover:text-white transition">Terms & Conditions</Link></li>
+            <h4 className="text-base font-bold text-white mb-6">Find Products</h4>
+            <ul className="space-y-3 text-sm text-gray-400">
+              <li><Link to="/shop?category=frame-beds" className="hover:text-white transition">Browse Frame Beds</Link></li>
+              <li><Link to="/shop?category=mattress" className="hover:text-white transition">Browse Mattresses</Link></li>
+              <li><Link to="/shop?category=ottoman-beds" className="hover:text-white transition">Browse Ottoman Beds</Link></li>
+              <li><Link to="/shop?category=divan-beds" className="hover:text-white transition">Browse Divan Beds</Link></li>
+              <li><Link to="/shop?category=modern-beds" className="hover:text-white transition">Browse Modern Beds</Link></li>
             </ul>
           </div>
 
-          <div>
-            <h4 className="text-lg font-medium text-white mb-4">Contact Us</h4>
-            <ul className="space-y-4 text-sm">
-              <li className="flex items-start gap-3">
-                <Phone size={18} className="mt-0.5 text-gray-400" />
-                <span>+44 7933 831237</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <Mail size={18} className="mt-0.5 text-gray-400" />
-                <span>ebedsuk@gmail.com</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <MapPin size={18} className="mt-0.5 text-gray-400" />
-                <span>Dewsbury, UK</span>
-              </li>
-            </ul>
+          <div className="md:col-span-1">
+            <h4 className="text-base font-bold text-white mb-6">Join our mail list</h4>
+            <p className="text-sm text-gray-400 mb-6 leading-relaxed">
+              Stay on top of the latest trends, sleep tips, and exclusive offers from PremiumRest Furniture.
+            </p>
+            <form className="space-y-3" onSubmit={(e) => e.preventDefault()}>
+              <input 
+                type="email" 
+                placeholder="Your email address" 
+                className="w-full px-4 py-3 bg-[#e8eced] text-gray-900 rounded-sm focus:outline-none placeholder-gray-500 text-sm"
+                required
+              />
+              <button 
+                type="submit" 
+                className="w-full bg-[#12423c] hover:bg-[#0c2f2a] text-white py-3 rounded-sm font-semibold transition text-sm"
+              >
+                Send
+              </button>
+            </form>
           </div>
 
         </div>
         
-        <div className="border-t border-slate-800 mt-12 pt-8 text-center text-sm text-gray-500">
-          <p>&copy; 2026 Elitebed.uk. All rights reserved.</p>
+        <div className="border-t border-[#444] mt-16 pt-8 text-center text-xs text-gray-400">
+          <p>&copy; 2026 PremiumRest Furniture Limited. All rights reserved.</p>
         </div>
       </div>
     </footer>

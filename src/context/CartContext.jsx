@@ -4,13 +4,13 @@ export const CartContext = createContext();
 
 export function CartProvider({ children }) {
   const [cartItems, setCartItems] = useState(() => {
-    const savedCart = localStorage.getItem('elitebed_cart');
+    const savedCart = localStorage.getItem('premiumrest_cart');
     return savedCart ? JSON.parse(savedCart) : [];
   });
   const [isCartOpen, setIsCartOpen] = useState(false);
 
   useEffect(() => {
-    localStorage.setItem('elitebed_cart', JSON.stringify(cartItems));
+    localStorage.setItem('premiumrest_cart', JSON.stringify(cartItems));
   }, [cartItems]);
 
   const addToCart = (product) => {

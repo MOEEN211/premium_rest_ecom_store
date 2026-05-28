@@ -4,7 +4,7 @@ export default function Delivery() {
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         <h1 className="text-4xl font-serif text-slate-900 mb-8">Delivery Information</h1>
         <div className="space-y-6 text-gray-600 leading-relaxed">
-          <p>At Elitebed.uk, we pride ourselves on a swift and secure delivery service. We offer Free Next-Day Delivery on all orders placed before 2 PM GMT.</p>
+          <p>At PremiumRest, we pride ourselves on a swift and secure delivery service. We offer Free Next-Day Delivery on all orders placed before 2 PM GMT.</p>
           <h2 className="text-2xl font-serif text-slate-900 mt-8 mb-4">How It Works</h2>
           <ul className="list-disc pl-6 space-y-2">
             <li>Once your order is complete, you will receive an email confirmation.</li>

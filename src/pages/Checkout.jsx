@@ -98,7 +98,7 @@ export default function Checkout() {
         
         // Prepare email parameters
         const emailParams = {
-          to_email: 'ebedsuk@gmail.com',  
+          to_email: 'sales@premiumrestfurniture.co.uk',  
           orderId: orderData.orderId,
           orderDate,
           orderTime,
@@ -148,7 +148,7 @@ export default function Checkout() {
       return;
     }
 
-    let message = `*New Order Request - Elitebed.uk*\n\n*Customer Details:*\nName: ${formData.fullName}\nPhone: ${formData.phone}`;
+    let message = `*New Order Request - PremiumRest*\n\n*Customer Details:*\nName: ${formData.fullName}\nPhone: ${formData.phone}`;
     if (formData.additionalPhone) message += `\nAlt Phone: ${formData.additionalPhone}`;
     message += `\nAddress: ${formData.address}`;
     if (formData.city) message += `, ${formData.city}`;
@@ -165,19 +165,19 @@ export default function Checkout() {
     message += `\n*Total: £${cartTotal.toFixed(2)}*`;
 
     const encodedStr = encodeURIComponent(message);
-    // IMPORTANT: Replace 447000000000 with your actual business WhatsApp number (include country code, no +)
-    window.open(`https://wa.me/447933831237?text=${encodedStr}`, '_blank');
+    // WhatsApp business number
+    window.open(`https://wa.me/447783699250?text=${encodedStr}`, '_blank');
   };
 
   if (isSuccess) {
     return (
-      <div className="bg-white py-32 min-h-[70vh] flex flex-col items-center justify-center text-center px-4">
-        <CheckCircle size={64} className="text-[#4a9d9c] mb-6" />
-        <h1 className="text-4xl font-serif text-slate-900 mb-4">Order Confirmed!</h1>
-        <p className="text-gray-500 max-w-md mx-auto mb-8">
+      <div className="bg-[#f8f8f8] py-32 min-h-[70vh] flex flex-col items-center justify-center text-center px-4">
+        <CheckCircle size={64} className="text-[#1a193f] mb-6" />
+        <h1 className="text-4xl font-black text-slate-900 mb-4 tracking-tighter">Order Confirmed!</h1>
+        <p className="text-gray-500 max-w-md mx-auto mb-8 font-medium">
           Thank you for choosing Cash on Delivery. We've received your order and will be in touch shortly to confirm delivery!
         </p>
-        <Link to="/" className="bg-[#4a9d9c] text-white px-8 py-4 font-semibold hover:bg-[#3b807f] rounded-sm transition">
+        <Link to="/" className="bg-[#1a193f] text-white px-8 py-4 font-semibold hover:bg-black rounded-xl transition shadow-sm">
           Return to Home
         </Link>
       </div>
@@ -186,22 +186,22 @@ export default function Checkout() {
 
   if (cartItems.length === 0 && !showConfirmation) {
     return (
-      <div className="bg-white py-32 text-center min-h-[60vh]">
-        <h2 className="text-2xl font-serif text-slate-900 mb-4">Your Cart is Empty</h2>
-        <Link to="/shop" className="text-[#4a9d9c] hover:underline font-semibold">Return to Shop</Link>
+      <div className="bg-[#f8f8f8] py-32 text-center min-h-[60vh]">
+        <h2 className="text-3xl font-black text-slate-900 mb-4 tracking-tighter">Your Cart is Empty</h2>
+        <Link to="/shop" className="text-[#1a193f] hover:underline font-bold">Return to Shop</Link>
       </div>
     );
   }
 
   return (
-    <div className="bg-white py-12 min-h-screen">
+    <div className="bg-[#f8f8f8] py-12 min-h-screen font-sans">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
 
           {/* ── Left: Form ── */}
-          <div>
-            <h1 className="text-xl font-bold text-slate-900 mb-1">Checkout - Cash on Delivery</h1>
-            <p className="text-xs text-rose-600 mb-8 italic">* Note: We only offer cash on delivery as the payment option.</p>
+          <div className="bg-white p-6 md:p-10 rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-gray-100">
+            <h1 className="text-2xl font-black text-slate-900 mb-1 tracking-tighter">Checkout - Cash on Delivery</h1>
+            <p className="text-xs text-rose-600 mb-8 italic font-medium">* Note: We only offer cash on delivery as the payment option.</p>
 
             {errorText && (
               <div className="bg-red-50 text-red-600 p-4 rounded-sm text-sm mb-6 border border-red-100">
@@ -218,7 +218,7 @@ export default function Checkout() {
                   value={formData.fullName}
                   onChange={handleChange}
                   placeholder="Full Name"
-                  className="w-full text-sm border border-gray-300 p-3 rounded-sm focus:outline-none focus:border-teal-500"
+                  className="w-full text-sm border border-gray-300 p-3 rounded-lg focus:outline-none focus:border-[#1a193f] focus:ring-1 focus:ring-[#1a193f]"
                 />
               </div>
               <div>
@@ -229,7 +229,7 @@ export default function Checkout() {
                   value={formData.email}
                   onChange={handleChange}
                   placeholder="Email Address"
-                  className="w-full text-sm border border-gray-300 p-3 rounded-sm focus:outline-none focus:border-teal-500"
+                  className="w-full text-sm border border-gray-300 p-3 rounded-lg focus:outline-none focus:border-[#1a193f] focus:ring-1 focus:ring-[#1a193f]"
                 />
               </div>
               <div>
@@ -240,7 +240,7 @@ export default function Checkout() {
                   value={formData.phone}
                   onChange={handleChange}
                   placeholder="Phone Number"
-                  className="w-full text-sm border border-gray-300 p-3 rounded-sm focus:outline-none focus:border-teal-500"
+                  className="w-full text-sm border border-gray-300 p-3 rounded-lg focus:outline-none focus:border-[#1a193f] focus:ring-1 focus:ring-[#1a193f]"
                 />
               </div>
               <div>
@@ -250,7 +250,7 @@ export default function Checkout() {
                   value={formData.additionalPhone}
                   onChange={handleChange}
                   placeholder="Additional Phone Number (Optional)"
-                  className="w-full text-sm border border-gray-300 p-3 rounded-sm focus:outline-none focus:border-teal-500"
+                  className="w-full text-sm border border-gray-300 p-3 rounded-lg focus:outline-none focus:border-[#1a193f] focus:ring-1 focus:ring-[#1a193f]"
                 />
               </div>
 
@@ -265,7 +265,7 @@ export default function Checkout() {
                   name="deliveryDate"
                   value={formData.deliveryDate}
                   onChange={handleChange}
-                  className="w-full text-sm border border-gray-300 p-3 rounded-sm focus:outline-none focus:border-teal-500 bg-white"
+                  className="w-full text-sm border border-gray-300 p-3 rounded-lg focus:outline-none focus:border-[#1a193f] focus:ring-1 focus:ring-[#1a193f] bg-white"
                 />
               </div>
 
@@ -279,7 +279,7 @@ export default function Checkout() {
                   value={formData.address}
                   onChange={handleChange}
                   placeholder="Address"
-                  className="w-full text-sm border border-gray-300 p-3 rounded-sm focus:outline-none focus:border-teal-500"
+                  className="w-full text-sm border border-gray-300 p-3 rounded-lg focus:outline-none focus:border-[#1a193f] focus:ring-1 focus:ring-[#1a193f]"
                 />
               </div>
               <div>
@@ -289,7 +289,7 @@ export default function Checkout() {
                   value={formData.city}
                   onChange={handleChange}
                   placeholder="City (Optional)"
-                  className="w-full text-sm border border-gray-300 p-3 rounded-sm focus:outline-none focus:border-teal-500"
+                  className="w-full text-sm border border-gray-300 p-3 rounded-lg focus:outline-none focus:border-[#1a193f] focus:ring-1 focus:ring-[#1a193f]"
                 />
               </div>
               <div>
@@ -300,22 +300,22 @@ export default function Checkout() {
                   value={formData.postCode}
                   onChange={handleChange}
                   placeholder="Post Code"
-                  className="w-full text-sm border border-gray-300 p-3 rounded-sm focus:outline-none focus:border-teal-500"
+                  className="w-full text-sm border border-gray-300 p-3 rounded-lg focus:outline-none focus:border-[#1a193f] focus:ring-1 focus:ring-[#1a193f]"
                 />
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-4 pt-2">
+              <div className="flex flex-col sm:flex-row gap-4 pt-4 mt-4">
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="flex-1 bg-[#4a9d9c] hover:bg-[#3b807f] text-white py-3 px-4 rounded-sm font-semibold text-sm transition disabled:opacity-50"
+                  className="flex-1 bg-[#1a193f] hover:bg-black text-white py-3.5 px-4 rounded-xl font-bold text-[15px] transition shadow-md hover:shadow-lg disabled:opacity-50"
                 >
                   {isSubmitting ? 'Processing...' : 'Place Order'}
                 </button>
                 <button
                   type="button"
                   onClick={handleWhatsAppOrder}
-                  className="flex-1 bg-[#d0d7e1] text-[#0a1128] hover:bg-slate-300 py-3 px-4 rounded-sm font-semibold text-sm transition"
+                  className="flex-1 bg-gray-100 text-[#1a193f] hover:bg-gray-200 py-3.5 px-4 rounded-xl font-bold text-[15px] transition"
                 >
                   Order via WhatsApp
                 </button>
@@ -324,8 +324,8 @@ export default function Checkout() {
           </div>
 
           {/* ── Right: Order Overview ── */}
-          <div>
-            <h2 className="text-xl font-bold text-slate-900 mb-8">Order Overview</h2>
+          <div className="bg-white p-6 md:p-10 rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-gray-100 h-max">
+            <h2 className="text-2xl font-black text-slate-900 mb-8 tracking-tighter">Order Overview</h2>
 
             <div className="space-y-10">
               {cartItems.map(item => (
@@ -352,7 +352,7 @@ export default function Checkout() {
                     {item.selectedOptions && Object.entries(item.selectedOptions).map(([key, val]) => (
                       <div key={key} className="flex justify-between py-2 border-b border-gray-100">
                         <span className="capitalize text-slate-700">{key}</span>
-                        <span className="text-[#4a9d9c] font-medium">{val}</span>
+                        <span className="text-[#1a193f] font-bold">{val}</span>
                       </div>
                     ))}
 
