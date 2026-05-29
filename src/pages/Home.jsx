@@ -12,9 +12,9 @@ export default function Home() {
   
   // Hero Carousel Logic
   const heroImages = [
-    '/images/hero/hero1.jpg',
-    '/images/hero/hero2.jpg',
-    '/images/hero/hero3.jpg'
+    '/herosection/WhatsApp Image 2026-05-28 at 8.40.27 PM.jpeg',
+    '/herosection/WhatsApp Image 2026-05-28 at 8.41.14 PM.jpeg',
+    '/herosection/WhatsApp Image 2026-05-28 at 8.41.33 PM.jpeg'
   ];
   const [currentHero, setCurrentHero] = useState(0);
 

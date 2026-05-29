@@ -3,21 +3,20 @@ import { useState, useEffect } from 'react';
 
 export default function TrustSections() {
   const stats = [
-    { title: "Selection", stat: "200+ bed styles.", desc: "Choose from top brands and trusted alternatives — all delivered free to your door." },
-    { title: "Comfort", stat: "100 night sleep trial.", desc: "Try your mattress risk-free for 100 nights. Not the right fit? We'll arrange a hassle-free return." },
-    { title: "Trust", stat: "50,000+ happy sleepers.", desc: "Since launching, customers have relied on us for quality beds, transparent pricing, and exceptional service." },
+    { title: "Selection", stat: "25+ bed styles.", desc: "Choose from top brands and trusted alternatives — all delivered free to your door." },
+    { title: "Comfort", stat: "90 night sleep trial.", desc: "Try your mattress risk-free for 90 nights. Not the right fit? We'll arrange a hassle-free return." },
+    { title: "Trust", stat: "5000+ happy sleepers.", desc: "Since launching, customers have relied on us for quality beds, transparent pricing, and exceptional service." },
     { title: "Rating", stat: "Top-rated on Trustpilot", desc: "Rated 4.8★ by thousands of verified customers who trust our quality, comfort, and next-day delivery." }
   ];
 
   const allReviews = [
-    { name: "Oliver J.", text: "I never knew a mattress could be this supportive. The velvet frame matches my room's aesthetic perfectly. Beyond happy!" },
-    { name: "Sophie M.", text: "We bought an Ottoman bed for the extra storage and it's incredible. Smooth lifting mechanism and incredibly solidly built." },
-    { name: "Muhammad T.", text: "The financing options made it effortless to upgrade our master bedroom. Exceptional customer service from day one." },
-    { name: "Chloe B.", text: "Fastest delivery I've ever experienced for large furniture. The delivery team was polite and carried it right to the exact room." },
-    { name: "Liam K.", text: "The Divan set I ordered exceeds my expectations. The drawers glide flawlessly and the mattress provides hotel-level comfort." },
-    { name: "Amelia R.", text: "Absolutely love the modern headboard design. Assembly took barely 20 minutes with the clear instructions provided." },
-    { name: "Noah S.", text: "Took advantage of the 100-night trial but I knew I was keeping it on the first night. Best sleep I've had in 10 years." },
-    { name: "Isabella H.", text: "Unbeatable value for the premium quality. It feels easily twice as expensive as what I paid. Will definitely be a returning customer!" }
+    { name: "Oliver J.", text: "The bed and mattress ( memory foam spring mattress) quality is great, the customer service was great from the start .." },
+    { name: "Sophie M.", text: "Nice quality with fastest delivery, delivery driver was polite and helpful, definitely recommend premiumrest furniture" },
+    { name: "Muhammad T.", text: "The Divan bed with mattress I ordered is even better than I expected. The mattress feels as comfortable as a luxury hotel bed" },
+    { name: "Chloe B.", text: "I really like the modern headboard design." },
+    { name: "Liam K.", text: "The bed looks great in my room and feels very sturdy. I’m really happy with how it turned out." },
+    { name: "Amelia R.", text: "Unbeatable value for the premium quality. Will definitely be a returning customer." },
+    { name: "Noah S.", text: "I’ll be recommending it to my friends and family too." }
   ];
 
   const [startIndex, setStartIndex] = useState(0);

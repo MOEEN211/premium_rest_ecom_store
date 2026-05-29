@@ -102,14 +102,6 @@ const SEO = ({
       },
       {
         "@type": "Question",
-        "name": "Do you offer 0% finance on beds?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Yes! We offer 0% interest free finance on all orders over £300. You can spread the cost over 6, 12, or 24 months with no deposit required."
-        }
-      },
-      {
-        "@type": "Question",
         "name": "What types of mattresses do you sell?",
         "acceptedAnswer": {
           "@type": "Answer",
@@ -132,7 +124,7 @@ const SEO = ({
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
     "name": "PremiumRest - Luxury Beds & Mattresses",
-    "description": "Premium UK bed and mattress retailer offering luxury bedroom furniture with free delivery across the United Kingdom, 0% finance, and 100-night comfort guarantee.",
+    "description": "Premium UK bed and mattress retailer offering luxury bedroom furniture with free delivery across the United Kingdom and 100-night comfort guarantee.",
     "url": "https://premiumrestfurniture.co.uk",
     "logo": "https://premiumrestfurniture.co.uk/logo.png",
     "image": "https://premiumrestfurniture.co.uk/storefront.jpg",
@@ -205,12 +197,6 @@ const SEO = ({
         "@type": "Offer",
         "name": "Free UK Delivery",
         "description": "Free delivery on all orders over £100",
-        "availabilityStarts": "2024-01-01"
-      },
-      {
-        "@type": "Offer",
-        "name": "0% Finance Available", 
-        "description": "Interest free credit on orders over £300",
         "availabilityStarts": "2024-01-01"
       },
       {
