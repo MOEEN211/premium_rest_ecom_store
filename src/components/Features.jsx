@@ -27,12 +27,6 @@ export default function Features() {
       desc: "Sleep on it and decide. If your mattress isn't the right fit within 100 nights, we'll arrange a hassle-free return or exchange — no questions asked."
     },
     { 
-      icon: <CreditCard size={20} className="text-black" strokeWidth={2} />, 
-      title: "0% financing options", 
-      subtitle: "We let you pay over time with simple interest-free financing.",
-      desc: "Split your purchase into easy monthly payments with 0% APR for qualifying customers. Get the bed you need now and pay at your own pace — no deposit required."
-    },
-    { 
       icon: <RefreshCcw size={20} className="text-black" strokeWidth={2} />, 
       title: "Easy returns", 
       subtitle: "We make returns simple if your bed isn't the right fit.",
