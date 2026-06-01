@@ -129,7 +129,7 @@ const SEO = ({
     "logo": "https://premiumrestfurniture.co.uk/logo.png",
     "image": "https://premiumrestfurniture.co.uk/storefront.jpg",
     "telephone": "+44-7783-699250",
-    "email": "sales@premiumrestfurniture.co.uk",
+    "email": "premiumrestfurniture@gmail.com",
     "priceRange": "££-£££",
     "address": {
       "@type": "PostalAddress",

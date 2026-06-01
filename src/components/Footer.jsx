@@ -21,9 +21,9 @@ export default function Footer() {
                 <Phone size={20} />
                 <span>+44 7783 699250</span>
               </a>
-              <a href="mailto:sales@premiumrestfurniture.co.uk" className="flex items-center gap-3 font-bold text-white hover:text-green-500 transition">
+              <a href="mailto:premiumrestfurniture@gmail.com" className="flex items-center gap-3 font-bold text-white hover:text-green-500 transition">
                 <Mail size={20} />
-                <span>sales@premiumrestfurniture.co.uk</span>
+                <span>premiumrestfurniture@gmail.com</span>
               </a>
             </div>
 

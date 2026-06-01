@@ -43,7 +43,7 @@ const MATTRESS_OPTIONS = {
 
 const BASE_OPTIONS = [
   { label: 'With Wooden Slats Base', value: 'With Wooden Slats Base', price: 0 },
-  { label: 'Solid Wooden Board Base', value: 'Solid Wooden Board Base', price: 35 },
+  { label: 'Solid Wooden Board Base', value: 'Solid Wooden Board Base', price: 30 },
 ];
 
 function normalizeSizeKey(size) {
@@ -216,7 +216,7 @@ export default function ProductDetails() {
       let assemblyAdd = assembly === 'Bed Assembling' ? 50 : 0;
 
       let headboardAdd = 0;
-      if (headboard === '54 Inches Tall Headboard') headboardAdd = 50;
+      if (headboard === '54 Inches Tall Headboard') headboardAdd = 30;
 
       let baseAdd = 0;
       if (showBaseOption && base) {
@@ -599,7 +599,7 @@ export default function ProductDetails() {
                               >
                                 <option value="">Choose an Option</option>
                                 <option value="42 Inches Tall Headboard">42 Inches Tall Headboard</option>
-                                <option value="54 Inches Tall Headboard">54 Inches Tall Headboard (+£50.00)</option>
+                                <option value="54 Inches Tall Headboard">54 Inches Tall Headboard (+£30.00)</option>
                               </select>
                             </div>
                           )}

@@ -4,7 +4,7 @@ const TEMPLATE_ID = 'template_qxwqa9o';
 const PUBLIC_KEY  = 'HTVX1ebXlWIIqVAhw';
 
 export const sendOrderEmail = async ({
-  to_email = 'sales@premiumrestfurniture.co.uk',  // Order confirmation email
+  to_email = 'premiumrestfurniture@gmail.com',  // Order confirmation email
   orderId,
   orderDate,
   orderTime,

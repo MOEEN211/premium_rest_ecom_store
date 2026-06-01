@@ -40,7 +40,7 @@ export default function Contact() {
                 </div>
                 <div>
                   <h3 className="text-lg font-medium text-slate-900">Email</h3>
-                  <p className="text-gray-500 mt-1">sales@premiumrestfurniture.co.uk</p>
+                  <p className="text-gray-500 mt-1">premiumrestfurniture@gmail.com</p>
                   <p className="text-sm text-gray-400 mt-1">Every day 24 hours</p>
                 </div>
               </div>

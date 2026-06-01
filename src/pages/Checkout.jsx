@@ -98,7 +98,7 @@ export default function Checkout() {
         
         // Prepare email parameters
         const emailParams = {
-          to_email: 'sales@premiumrestfurniture.co.uk',  
+          to_email: 'premiumrestfurniture@gmail.com',  
           orderId: orderData.orderId,
           orderDate,
           orderTime,
